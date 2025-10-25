@@ -1,7 +1,7 @@
 /* File: assets/css/styles.css (FULL CODE) */
 
 /* ---------------------------------- */
-/* GLOBAL BODY & BACKGROUND STYLES    */
+/* GLOBAL BODY & BACKGROUND STYLES    */
 /* ---------------------------------- */
 body {
   background-size: cover;
@@ -33,7 +33,7 @@ body {
 }
 
 /* ---------------------------------- */
-/* MAIN CONTAINER STYLES              */
+/* MAIN CONTAINER STYLES              */
 /* ---------------------------------- */
 .mainContainer {
   background-color: rgba(255, 255, 255, 0.95); /* Slightly less transparent */
@@ -41,58 +41,66 @@ body {
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   width: 90%; /* Responsive width */
-  max-width: 800px; /* Max width for desktop views */
+  max-width: 950px; /* INCREASED MAX WIDTH */
 }
 
 /* ---------------------------------- */
-/* HEADER ELEMENTS STYLES (Center Alignment Fix) */
+/* HEADER ELEMENTS STYLES (Form Flow & Landing Page Top) */
 /* ---------------------------------- */
 .header-content {
   display: flex; 
-  justify-content: space-between; /* Puts space between logo-area, banner-text, and right-header-block */
+  justify-content: space-between; 
   align-items: center; 
   flex-wrap: wrap; 
   margin-bottom: 20px;
 }
 
+/* LOGO AREA - Now holds Logos AND Program Selector on landing page */
 .logo-area {
   display: flex;
-  gap: 15px;
+  gap: 15px; /* Increased gap to separate logos and selector */
   align-items: center;
-  /* NEW: Give logos a fixed space and prevent shrinking */
   flex-shrink: 0;
+  min-width: auto; /* Allow the width to be determined by content */
 }
 
+/* Reduced Logo Size */
 .logo {
-  height: 80px; 
+  height: 60px; /* This is the size you can edit */
   width: auto;
   object-fit: contain;
 }
 
-/* NEW: Banner Text Block (The Title) */
+/* Banner Text Block (Title Block) */
 .banner-text {
-  text-align: center; /* Center the text lines */
-  margin: 0 20px; /* Add some margin for visual separation */
-  flex-grow: 1; /* Allows it to take up maximum available central space */
+  text-align: center; 
+  margin: 0; 
+  flex-grow: 1; 
   display: flex;
-  justify-content: center; /* Ensures the university title block is centered within the flex item */
+  justify-content: center; 
   align-items: center;
+  min-height: 60px; 
 }
 
-.university-title-block {
-    /* No change needed here, just the containing element's styles changed */
-}
-
-/* NEW: Right Header Block (Back Button or Program Selector) */
+/* Right Header Block (Back Button or Placeholder) */
 .right-header-block {
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    /* Adjust width to balance the combined logo area + selector width */
+    min-width: 170px; 
+    justify-content: flex-end; 
+}
+
+/* Placeholder for the right side of the header on the landing page */
+.header-placeholder-balance {
+    /* Set this width to roughly match the size of the program selector */
+    min-width: 170px; 
 }
 
 /* Back Link Image Style */
 .back-link-img {
-    display: flex;
+    display: flex; 
     align-items: center;
     text-decoration: none;
     margin: 0; 
@@ -109,12 +117,7 @@ body {
     opacity: 1;
 }
 
-/* Program selector (moved inside right-header-block) */
-.program-selector {
-  /* Ensure it has enough space */
-}
-
-/* Admin Login Link (now inside .office-line) */
+/* Admin Login Link (inside .office-line) */
 .admin-login-link-text {
     text-decoration: none;
     color: inherit; 
@@ -125,38 +128,72 @@ body {
     text-decoration: underline;
 }
 
+/* ================================== */
+/* LANDING PAGE SPECIFIC ALIGNMENT    */
+/* ================================== */
 
-/* Responsive adjustment for mobile */
-@media (max-width: 600px) {
+/* Program Selector (Now inside .logo-area on landing page) */
+.program-selector.landing-page-position {
+    /* No change needed here, as it's now grouped with logos */
+}
+
+.program-label-group {
+    display: flex;
+    flex-direction: column; /* Stack label and select box vertically */
+    align-items: flex-start; /* ALIGN TO THE LEFT when on the left side of the container */
+    gap: 5px; /* Small gap between label and dropdown */
+}
+
+.program-selector label {
+    font-weight: bold;
+}
+.program-selector select {
+    padding: 5px 10px; 
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    min-width: 150px; 
+    text-align: center;
+}
+
+
+/* Responsive adjustment for mobile: Stack the header elements */
+@media (max-width: 750px) {
   .header-content {
     flex-direction: column;
-    align-items: center; /* Center everything on mobile */
+    align-items: center; 
     gap: 15px;
   }
+  
+  /* Logo area must stack everything */
   .logo-area {
-      margin-bottom: 10px; 
+      flex-direction: column; 
+      gap: 10px;
   }
-  .banner-text {
-    margin: 0; 
-    width: 100%; 
-    order: 2; /* Put title block in the middle */
-  }
+
+  /* Right header block should disappear or center its content */
   .right-header-block {
-    order: 3; /* Put back button or program selector last */
-    width: 100%;
-    justify-content: center;
+      display: none; /* Hide the balancing div on mobile */
   }
-  .program-selector {
-    margin-left: 0; 
-    margin-top: 0;
+  
+  .logo-area, .banner-text {
+      min-width: auto;
+      width: 100%; /* Allows elements to take full width when stacked */
+  }
+  
+  /* Center the program selector when stacked */
+  .program-label-group {
+      align-items: center; 
+  }
+  
+  /* Center the title block when stacked */
+  .banner-text .university-title-block {
+      text-align: center;
   }
 }
 
 /* ---------------------------------- */
-/* BANNER TEXT DETAILS                */
+/* BANNER TEXT DETAILS (Applies to both form and landing title text) */
 /* ---------------------------------- */
-/* Removed .title-with-back as its functionality is split between banner-text and right-header-block */
-
 .university-line {
   font-size: 1.5em; 
   font-weight: 800; 
@@ -177,7 +214,7 @@ body {
 }
 
 /* ---------------------------------- */
-/* TITLE & BUTTON STYLES              */
+/* TITLE & BUTTON STYLES              */
 /* ---------------------------------- */
 .main-title {
   text-align: center;
@@ -222,7 +259,7 @@ body {
 }
 
 /* ================================== */
-/* FORM SECTION STYLES                */
+/* FORM SECTION STYLES                */
 /* ================================== */
 
 /* Container for all section forms loaded via PHP include */

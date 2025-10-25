@@ -98,9 +98,9 @@
             <div class="university-title-block">
                 <p class="university-line">Western Mindanao State University</p>
                 <p class="office-line">
-                    <?php if (!$current_section) : // Only show Admin Login link on landing page ?>
+                    <?php if (!$current_section) : // Landing Page: Show Admin Login link and keep title central ?>
                         <a href="adminLogin.php" class="admin-login-link-text">ALUMNI RELATION OFFICE</a>
-                    <?php else: ?>
+                    <?php else: // Form Flow: Just show the text ?>
                         ALUMNI RELATION OFFICE
                     <?php endif; ?>
                 </p>
@@ -116,11 +116,13 @@
                 </a>
             <?php else: ?>
                 <div class="program-selector">
-                    <label for="program-select">Program:</label>
-                    <select id="program-select" onchange="updateBackground(this.value)">
-                        <option value="default" <?php echo ($current_program === 'default') ? 'selected' : ''; ?>>Select Program</option> 
-                        <option value="ccs" <?php echo ($current_program === 'ccs') ? 'selected' : ''; ?>>CCS</option>
-                    </select>
+                    <div class="program-label-group">
+                        <label for="program-select">Program:</label>
+                        <select id="program-select" onchange="updateBackground(this.value)">
+                            <option value="default" <?php echo ($current_program === 'default') ? 'selected' : ''; ?>>Select Program</option> 
+                            <option value="ccs" <?php echo ($current_program === 'ccs') ? 'selected' : ''; ?>>CCS</option>
+                        </select>
+                    </div>
                 </div>
             <?php endif; ?>
         </div>
@@ -128,6 +130,7 @@
       </header>
       
       <?php if (!$current_section) : ?>
+        
         <h1 class="main-title">Alumni Information Form</h1>
         
         <div class="application-type-selector">
