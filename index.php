@@ -34,7 +34,7 @@
   $file_to_include = '';
   $current_step = 0;
 
-  // JavaScript confirmation message
+  // JavaScript confirmation message for leaving the form
   $confirm_message = "WARNING: Changes will not be saved. Are you sure you want to leave this page?";
 
   // Simple routing logic and step calculation
@@ -95,29 +95,35 @@
         </div>
 
         <div class="banner-text">
-          <?php if ($current_section) : ?>
-            <a href="index.php" class="back-to-landing-link" 
-               onclick="return confirm('<?php echo htmlspecialchars($confirm_message, ENT_QUOTES); ?>');">
-              <p class="university-line">Western Mindanao State University</p>
-              <p class="office-line">ALUMNI RELATION OFFICE</p>
-              <p class="city-line">Zamboanga City</p>
-            </a>
-          <?php else: ?>
-            <p class="university-line">Western Mindanao State University</p>
-            <p class="office-line">ALUMNI RELATION OFFICE</p>
-            <p class="city-line">Zamboanga City</p>
-          <?php endif; ?>
+            <div class="university-title-block">
+                <p class="university-line">Western Mindanao State University</p>
+                <p class="office-line">
+                    <?php if (!$current_section) : // Only show Admin Login link on landing page ?>
+                        <a href="adminLogin.php" class="admin-login-link-text">ALUMNI RELATION OFFICE</a>
+                    <?php else: ?>
+                        ALUMNI RELATION OFFICE
+                    <?php endif; ?>
+                </p>
+                <p class="city-line">Zamboanga City</p>
+            </div>
         </div>
           
-        <?php if (!$current_section) : ?>
-          <div class="program-selector">
-            <label for="program-select">Program:</label>
-            <select id="program-select" onchange="updateBackground(this.value)">
-              <option value="default" <?php echo ($current_program === 'default') ? 'selected' : ''; ?>>Select Program</option> 
-              <option value="ccs" <?php echo ($current_program === 'ccs') ? 'selected' : ''; ?>>CCS</option>
-            </select>
-          </div>
-        <?php endif; ?>
+        <div class="right-header-block">
+            <?php if ($current_section) : ?>
+                <a href="index.php" class="back-link-img" 
+                    onclick="return confirm('<?php echo htmlspecialchars($confirm_message, ENT_QUOTES); ?>');">
+                    <img src="assets/images/back.png" alt="Back" class="back-icon">
+                </a>
+            <?php else: ?>
+                <div class="program-selector">
+                    <label for="program-select">Program:</label>
+                    <select id="program-select" onchange="updateBackground(this.value)">
+                        <option value="default" <?php echo ($current_program === 'default') ? 'selected' : ''; ?>>Select Program</option> 
+                        <option value="ccs" <?php echo ($current_program === 'ccs') ? 'selected' : ''; ?>>CCS</option>
+                    </select>
+                </div>
+            <?php endif; ?>
+        </div>
 
       </header>
       
@@ -147,14 +153,12 @@
 
         <nav class="section-nav">
           <?php 
-          // Previous step: The index of the current section in the active keys
           $current_index = array_search($current_section, array_values($section_keys));
 
           foreach ($section_keys as $key => $section_name): 
             $link_class = ($section_name === $current_section) ? 'nav-link active' : 'nav-link';
             $link_url = "index.php?section=$section_name&program=$current_program&type=$application_type";
             
-            // Add confirmation prompt only if navigating to a previous step
             $onclick_handler = '';
             if ($key < $current_index) {
                 $onclick_handler = 'onclick="return confirm(\'' . htmlspecialchars($confirm_message, ENT_QUOTES) . '\');"';
@@ -169,7 +173,6 @@
         <div class="section-forms-container">
           <?php
             if (file_exists($file_to_include)) {
-              // Pass the application type and program name to the included form
               include($file_to_include); 
             } else {
               echo '<p>Error: Section not found.</p>';

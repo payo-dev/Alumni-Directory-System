@@ -45,12 +45,12 @@ body {
 }
 
 /* ---------------------------------- */
-/* HEADER ELEMENTS STYLES             */
+/* HEADER ELEMENTS STYLES (Center Alignment Fix) */
 /* ---------------------------------- */
 .header-content {
   display: flex; 
-  justify-content: space-between; 
-  align-items: center;
+  justify-content: space-between; /* Puts space between logo-area, banner-text, and right-header-block */
+  align-items: center; 
   flex-wrap: wrap; 
   margin-bottom: 20px;
 }
@@ -59,6 +59,8 @@ body {
   display: flex;
   gap: 15px;
   align-items: center;
+  /* NEW: Give logos a fixed space and prevent shrinking */
+  flex-shrink: 0;
 }
 
 .logo {
@@ -67,63 +69,110 @@ body {
   object-fit: contain;
 }
 
-.program-selector {
-  margin-left: auto; 
+/* NEW: Banner Text Block (The Title) */
+.banner-text {
+  text-align: center; /* Center the text lines */
+  margin: 0 20px; /* Add some margin for visual separation */
+  flex-grow: 1; /* Allows it to take up maximum available central space */
+  display: flex;
+  justify-content: center; /* Ensures the university title block is centered within the flex item */
+  align-items: center;
 }
 
-/* Back to Landing Link Style FIX */
-.back-to-landing-link {
+.university-title-block {
+    /* No change needed here, just the containing element's styles changed */
+}
+
+/* NEW: Right Header Block (Back Button or Program Selector) */
+.right-header-block {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Back Link Image Style */
+.back-link-img {
+    display: flex;
+    align-items: center;
     text-decoration: none;
-    color: inherit;
+    margin: 0; 
+    padding: 0;
+}
+.back-icon {
+    height: 30px; 
+    width: auto;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+.back-icon:hover {
+    opacity: 1;
+}
+
+/* Program selector (moved inside right-header-block) */
+.program-selector {
+  /* Ensure it has enough space */
+}
+
+/* Admin Login Link (now inside .office-line) */
+.admin-login-link-text {
+    text-decoration: none;
+    color: inherit; 
     transition: color 0.2s;
-    display: block; 
-    margin: 0; /* Remove default link margin */
+}
+.admin-login-link-text:hover {
+    color: #007bff; 
+    text-decoration: underline;
 }
 
-.back-to-landing-link:hover {
-    color: #007bff; /* Highlight on hover */
-}
 
-
-/* Responsive adjustment for mobile (keep existing) */
+/* Responsive adjustment for mobile */
 @media (max-width: 600px) {
   .header-content {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center; /* Center everything on mobile */
+    gap: 15px;
+  }
+  .logo-area {
+      margin-bottom: 10px; 
+  }
+  .banner-text {
+    margin: 0; 
+    width: 100%; 
+    order: 2; /* Put title block in the middle */
+  }
+  .right-header-block {
+    order: 3; /* Put back button or program selector last */
+    width: 100%;
+    justify-content: center;
   }
   .program-selector {
     margin-left: 0; 
-    margin-top: 15px;
-    width: 100%;
+    margin-top: 0;
   }
 }
 
 /* ---------------------------------- */
-/* BANNER TEXT STYLES (Adjusted)      */
+/* BANNER TEXT DETAILS                */
 /* ---------------------------------- */
-.banner-text {
-  text-align: left; 
-  margin: 0; 
-  margin-left: 30px; 
-  flex-grow: 1; 
-}
+/* Removed .title-with-back as its functionality is split between banner-text and right-header-block */
 
 .university-line {
   font-size: 1.5em; 
   font-weight: 800; 
-  margin: 0; /* Ensure all p tags have zero margin to align */
+  margin: 0; 
   color: #333; 
 }
 
 .office-line {
   font-size: 1.2em;
   font-weight: bold;
-  margin: 0; /* Ensure all p tags have zero margin to align */
+  margin: 0; 
 }
 
 .city-line {
   font-size: 0.9em;
-  margin: 0; /* Ensure all p tags have zero margin to align */
+  margin: 0; 
   color: #555;
 }
 
@@ -179,7 +228,7 @@ body {
 /* Container for all section forms loaded via PHP include */
 .section-forms-container {
   padding-top: 20px;
-  border-top: 1px solid #eee; /* Visual separation from the header */
+  border-top: 1px solid #eee; 
 }
 
 /* --- PROGRESSION INDICATOR STYLES --- */
@@ -205,7 +254,7 @@ body {
 
 .progress-fill {
     height: 100%;
-    background-color: #28a745; /* Green for progress */
+    background-color: #28a745; 
     transition: width 0.4s ease;
 }
 
@@ -214,16 +263,16 @@ body {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px 20px; /* Increased horizontal gap */
+    gap: 10px 20px; 
     border-bottom: 1px solid #ddd;
-    padding: 15px 0; /* Added vertical padding */
+    padding: 15px 0; 
     margin-bottom: 30px;
 }
 
 .nav-link {
     text-decoration: none;
     color: #6c757d;
-    padding: 8px 12px; /* Increased padding for easier clicking */
+    padding: 8px 12px; 
     border-radius: 4px;
     font-size: 0.9em;
     font-weight: bold;
@@ -335,7 +384,7 @@ fieldset {
 }
 
 fieldset .form-group {
-    flex: 1 1 45%; /* Allow two items per row on wider screens */
+    flex: 1 1 45%; 
     min-width: 250px;
 }
 
