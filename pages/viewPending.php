@@ -1,60 +1,80 @@
 <?php
-// pages/viewPending.php
-require_once __DIR__ . '/../functions/auth.php';
-requireAdmin();
+// ==========================================================
+// pages/viewPending.php — View detailed pending alumni info
+// ==========================================================
+session_start();
+require_once __DIR__ . '/../classes/auth.php';
 require_once __DIR__ . '/../classes/database.php';
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if ($id <= 0) {
-    header("Location: /pages/adminDashboard.php");
-    exit;
-}
-
+Auth::restrict();
 $pdo = Database::getPDO();
-$stmt = $pdo->prepare("SELECT * FROM pending_alumni WHERE id = :id LIMIT 1");
-$stmt->execute([':id' => $id]);
-$rec = $stmt->fetch();
 
-if (!$rec) {
-    echo "Record not found.";
-    exit;
-}
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($id <= 0) die("<h3>Invalid record ID.</h3>");
+
+$stmt = $pdo->prepare("SELECT * FROM pending_alumni WHERE id = ?");
+$stmt->execute([$id]);
+$record = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$record) die("<h3>No record found with that ID.</h3>");
 ?>
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>View Submission #<?php echo $rec['id']; ?></title>
+  <meta charset="UTF-8">
+  <title>View Pending Alumni</title>
   <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    body { background: #f7f7f7; font-family: Arial, sans-serif; color: #333; }
+    .container {
+      width: 80%; margin: 40px auto; background: #fff; padding: 20px 40px;
+      border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h1 { text-align: center; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: 10px; border: 1px solid #ddd; text-align: left; vertical-align: top;
+    }
+    th { background: #f2f2f2; width: 30%; }
+    .actions { margin-top: 20px; text-align: center; }
+    .actions a {
+      margin: 0 10px; padding: 10px 20px; border-radius: 5px;
+      text-decoration: none; color: white; transition: background 0.3s;
+    }
+    .approve { background: #28a745; }
+    .approve:hover { background: #218838; }
+    .reject { background: #dc3545; }
+    .reject:hover { background: #c82333; }
+    .back { background: #6c757d; }
+    .back:hover { background: #5a6268; }
+  </style>
 </head>
 <body>
-<?php if (file_exists(__DIR__ . '/../includes/header.php')) include_once __DIR__ . '/../includes/header.php'; ?>
+  <div class="container">
+    <h1>Pending Alumni Record</h1>
 
-<div class="mainContainer">
-  <h1>Submission Details</h1>
+    <table>
+      <tbody>
+        <?php foreach ($record as $key => $value): ?>
+          <tr>
+            <th><?= htmlspecialchars(ucwords(str_replace('_', ' ', $key))); ?></th>
+            <td><?= htmlspecialchars($value ?? '—'); ?></td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
 
-  <p><strong>ID:</strong> <?php echo $rec['id']; ?></p>
-  <p><strong>Name:</strong> <?php echo htmlspecialchars($rec['surname'] . ', ' . $rec['given_name'] . ' ' . $rec['middle_name']); ?></p>
-  <p><strong>Type:</strong> <?php echo htmlspecialchars($rec['type_of_application']); ?></p>
-  <p><strong>Student ID:</strong> <?php echo htmlspecialchars($rec['student_id']); ?></p>
-  <p><strong>Batch:</strong> <?php echo htmlspecialchars($rec['batch_name']); ?></p>
-  <p><strong>Course/Year:</strong> <?php echo htmlspecialchars($rec['course_year']); ?></p>
-  <p><strong>Address:</strong><br><?php echo nl2br(htmlspecialchars($rec['present_address'])); ?></p>
-  <p><strong>Contact:</strong> <?php echo htmlspecialchars($rec['contact_number']); ?></p>
-  <p><strong>Email:</strong> <?php echo htmlspecialchars($rec['email']); ?></p>
-  <p><strong>Birthday:</strong> <?php echo htmlspecialchars($rec['birthday']); ?></p>
+    <div class="actions">
+      <a href="../functions/approve.php?id=<?= $record['id']; ?>"
+         class="approve"
+         onclick="return confirm('✅ Approve this applicant?');">Approve</a>
 
-  <?php if (!empty($rec['picture_path'])): ?>
-    <p><img src="<?php echo htmlspecialchars($rec['picture_path']); ?>" alt="Picture" style="max-width:200px;"></p>
-  <?php endif; ?>
+      <a href="../functions/reject.php?id=<?= $record['id']; ?>"
+         class="reject"
+         onclick="return confirm('⚠️ Reject this applicant and move to Archive?');">Reject</a>
 
-  <div style="margin-top:12px">
-    <a href="/functions/approve.php?id=<?php echo $rec['id']; ?>" onclick="return confirm('Approve this submission?')">Approve</a> |
-    <a href="/functions/reject.php?id=<?php echo $rec['id']; ?>" onclick="return confirm('Reject this submission?')">Reject</a> |
-    <a href="/pages/adminDashboard.php">Back</a>
+      <a href="../pages/adminDashboard.php" class="back">Back to Dashboard</a>
+    </div>
   </div>
-</div>
-
-<?php if (file_exists(__DIR__ . '/../includes/footer.php')) include_once __DIR__ . '/../includes/footer.php'; ?>
 </body>
 </html>
