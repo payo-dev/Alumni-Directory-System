@@ -70,6 +70,7 @@ try {
 
     unset($_SESSION['form_data']);
 
+    // ✅ FIXED: Correct redirect path (since thankYou.php is inside /pages)
     header("Location: ../pages/thankYou.php?id=" . $insertId);
     exit;
 

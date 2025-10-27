@@ -15,29 +15,38 @@ $current_url_params = "program={$current_program}&type={$application_type}";
         <label for="employmentStatus">Current Employment Status</label>
         <select id="employmentStatus" name="employmentStatus" required>
             <option value="">Select Status</option>
-            <option value="Employed Full-Time" <?php echo (($_POST['employmentStatus'] ?? '') == 'Employed Full-Time') ? 'selected' : ''; ?>>Employed (Full-Time)</option>
-            <option value="Employed Part-Time" <?php echo (($_POST['employmentStatus'] ?? '') == 'Employed Part-Time') ? 'selected' : ''; ?>>Employed (Part-Time)</option>
-            <option value="Self-Employed" <?php echo (($_POST['employmentStatus'] ?? '') == 'Self-Employed') ? 'selected' : ''; ?>>Self-Employed</option>
-            <option value="Unemployed" <?php echo (($_POST['employmentStatus'] ?? '') == 'Unemployed') ? 'selected' : ''; ?>>Unemployed</option>
-            <option value="Retired" <?php echo (($_POST['employmentStatus'] ?? '') == 'Retired') ? 'selected' : ''; ?>>Retired</option>
+            <?php 
+            $employmentStatus = $_SESSION['form_data']['employmentStatus'] ?? '';
+            $options = [
+                "Employed Full-Time",
+                "Employed Part-Time",
+                "Self-Employed",
+                "Unemployed",
+                "Retired"
+            ];
+            foreach ($options as $opt) {
+                $selected = ($opt === $employmentStatus) ? 'selected' : '';
+                echo "<option value=\"$opt\" $selected>$opt</option>";
+            }
+            ?>
         </select>
     </div>
 
     <div class="form-group">
         <label for="companyName">Company/Organization Name</label>
         <input type="text" id="companyName" name="companyName" 
-               value="<?php echo htmlspecialchars($_POST['companyName'] ?? ''); ?>" required>
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['companyName'] ?? ''); ?>" required>
     </div>
 
     <div class="form-group">
         <label for="jobTitle">Position/Job Title</label>
         <input type="text" id="jobTitle" name="jobTitle" 
-               value="<?php echo htmlspecialchars($_POST['jobTitle'] ?? ''); ?>" required>
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['jobTitle'] ?? ''); ?>" required>
     </div>
 
     <div class="form-group">
         <label for="companyAddress">Company Address</label>
-        <textarea id="companyAddress" name="companyAddress" rows="3" required><?php echo htmlspecialchars($_POST['companyAddress'] ?? ''); ?></textarea>
+        <textarea id="companyAddress" name="companyAddress" rows="3" required><?php echo htmlspecialchars($_SESSION['form_data']['companyAddress'] ?? ''); ?></textarea>
     </div>
 
     <button type="submit" class="next-section-button">Proceed to Emergency Contact</button>

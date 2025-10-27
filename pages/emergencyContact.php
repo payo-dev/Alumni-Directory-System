@@ -14,25 +14,25 @@ $current_url_params = "program={$current_program}&type={$application_type}";
     <div class="form-group">
         <label for="emergencyName">Full Name of Contact Person</label>
         <input type="text" id="emergencyName" name="emergencyName" placeholder="Last Name, First Name" 
-               value="<?php echo htmlspecialchars($_POST['emergencyName'] ?? ''); ?>" required>
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['emergencyName'] ?? ''); ?>" required>
     </div>
 
     <div class="form-group">
-        <label for="relationship">Relationship to Alumnus/Alumna</label>
+        <label for="relationship">Relationship to this person</label>
         <input type="text" id="relationship" name="relationship" placeholder="e.g., Mother, Spouse, Friend" 
-               value="<?php echo htmlspecialchars($_POST['relationship'] ?? ''); ?>" required>
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['relationship'] ?? ''); ?>" required>
     </div>
 
     <div class="form-group">
         <label for="emergencyContact">Contact Number</label>
         <input type="tel" id="emergencyContact" name="emergencyContact" placeholder="e.g., 0917xxxxxxx" 
-               value="<?php echo htmlspecialchars($_POST['emergencyContact'] ?? ''); ?>" 
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['emergencyContact'] ?? ''); ?>" 
                required pattern="[0-9]{11,13}" title="Phone number must be 11 to 13 digits.">
     </div>
 
     <div class="form-group">
         <label for="emergencyAddress">Address</label>
-        <textarea id="emergencyAddress" name="emergencyAddress" rows="3" required><?php echo htmlspecialchars($_POST['emergencyAddress'] ?? ''); ?></textarea>
+        <textarea id="emergencyAddress" name="emergencyAddress" rows="3" required><?php echo htmlspecialchars($_SESSION['form_data']['emergencyAddress'] ?? ''); ?></textarea>
     </div>
 
     <button type="submit" class="next-section-button">Proceed to Review & Submit</button>

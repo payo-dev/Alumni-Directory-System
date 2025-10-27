@@ -11,7 +11,7 @@
   <h2>Review Summary</h2>
 
   <div style="border:1px solid #ddd; padding:20px; background:#f9f9f9; border-radius:5px; margin-bottom:20px;">
-    <p><strong>NOTE:</strong> This is a placeholder for your review summary. (You can display entered info here later.)</p>
+    <p><strong>NOTE:</strong> This is a placeholder for review summary (must view da form completely) bwahaha</p>
 
     <div class="form-group" style="margin-top:20px;">
       <input type="checkbox" id="certification" name="certification" value="certified" required style="width:auto;">

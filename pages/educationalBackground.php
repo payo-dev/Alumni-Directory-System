@@ -17,12 +17,12 @@ $current_url_params = "program={$current_program}&type={$application_type}";
         <div class="form-group">
             <label for="elemSchool">School Name</label>
             <input type="text" id="elemSchool" name="elemSchool" 
-                   value="<?php echo htmlspecialchars($_POST['elemSchool'] ?? ''); ?>" required>
+                   value="<?php echo htmlspecialchars($_SESSION['form_data']['elemSchool'] ?? ''); ?>" required>
         </div>
         <div class="form-group">
             <label for="elemYear">Year Graduated</label>
             <input type="number" id="elemYear" name="elemYear" min="1950" max="<?php echo date('Y'); ?>" placeholder="YYYY" 
-                   value="<?php echo htmlspecialchars($_POST['elemYear'] ?? ''); ?>" required>
+                   value="<?php echo htmlspecialchars($_SESSION['form_data']['elemYear'] ?? ''); ?>" required>
         </div>
     </fieldset>
 
@@ -31,12 +31,12 @@ $current_url_params = "program={$current_program}&type={$application_type}";
         <div class="form-group">
             <label for="hsSchool">School Name</label>
             <input type="text" id="hsSchool" name="hsSchool" 
-                   value="<?php echo htmlspecialchars($_POST['hsSchool'] ?? ''); ?>" required>
+                   value="<?php echo htmlspecialchars($_SESSION['form_data']['hsSchool'] ?? ''); ?>" required>
         </div>
         <div class="form-group">
             <label for="hsYear">Year Graduated</label>
             <input type="number" id="hsYear" name="hsYear" min="1950" max="<?php echo date('Y'); ?>" placeholder="YYYY" 
-                   value="<?php echo htmlspecialchars($_POST['hsYear'] ?? ''); ?>" required>
+                   value="<?php echo htmlspecialchars($_SESSION['form_data']['hsYear'] ?? ''); ?>" required>
         </div>
     </fieldset>
 
@@ -45,12 +45,12 @@ $current_url_params = "program={$current_program}&type={$application_type}";
         <div class="form-group">
             <label for="degree">Degree/Course</label>
             <input type="text" id="degree" name="degree" 
-                   value="<?php echo htmlspecialchars($_POST['degree'] ?? strtoupper($current_program)); ?>" required readonly>
+                   value="<?php echo htmlspecialchars($_SESSION['form_data']['degree'] ?? strtoupper($current_program)); ?>" required readonly>
         </div>
         <div class="form-group">
             <label for="collegeYear">Year Graduated from WMSU</label>
             <input type="number" id="collegeYear" name="collegeYear" min="1950" max="<?php echo date('Y'); ?>" placeholder="YYYY" 
-                   value="<?php echo htmlspecialchars($_POST['collegeYear'] ?? ''); ?>" required>
+                   value="<?php echo htmlspecialchars($_SESSION['form_data']['collegeYear'] ?? ''); ?>" required>
         </div>
     </fieldset>
 
