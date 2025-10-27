@@ -1,9 +1,41 @@
 <?php
-// Database configuration settings
-define('DB_HOST', 'localhost');
-define('DB_USER', 'your_username');
-define('DB_PASS', 'your_password');
-define('DB_NAME', 'ccs_alumni_db');
+// ======================================================
+// SESSION + ADMIN CONFIG
+// ======================================================
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Other configuration settings can be added here
-?>
+// Hardcoded admin credentials (temporary)
+define('ADMIN_USERNAME', 'payo.dev');
+define('ADMIN_PASSWORD', 'admin123');
+
+// Helper function for redirects
+function redirect($path) {
+    header("Location: " . BASE_URL . "/pages/thankYou.php?id=" . $insertId);
+    exit();
+}
+
+// ======================================================
+// DATABASE CONNECTION CONFIGURATION
+// ======================================================
+
+// Edit these values if your DB credentials differ
+define('DB_HOST', '127.0.0.1');
+define('DB_NAME', 'ccs_alumni_db');
+define('DB_USER', 'root');
+define('DB_PASS', ''); // Default for XAMPP = empty string
+
+try {
+    $pdo = new PDO(
+        "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",
+        DB_USER,
+        DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
+}
