@@ -15,9 +15,9 @@ $id = $_GET['id'] ?? null;
     <?php if ($id): ?>
       <p><strong>Reference ID:</strong> <?= htmlspecialchars($id) ?></p>
     <?php endif; ?>
-    <p>You will receive an update via the email address you provided.</p>
+    <p>You will receive updates via the email you provided.</p>
     <br>
-    <a href="../index.php" style="display:inline-block; padding:10px 20px; background:#007bff; color:white; border-radius:5px; text-decoration:none;">
+    <a href="../index.php" style="display:inline-block; padding:10px 20px; background:#dc3545; color:white; border-radius:5px; text-decoration:none;">
       Return to Home
     </a>
   </div>

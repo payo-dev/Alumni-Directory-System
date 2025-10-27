@@ -1,6 +1,6 @@
 <?php
 // ==========================================================
-//  ADMIN DASHBOARD (Red Theme + Name/Course Display)
+//  ADMIN DASHBOARD (Red Theme + Alumni_CCS Integration)
 // ==========================================================
 session_start();
 require_once __DIR__ . '/../classes/auth.php';
@@ -13,9 +13,9 @@ $pdo = Database::getPDO();
 $flash = $_SESSION['flash_message'] ?? '';
 unset($_SESSION['flash_message']);
 
-// ✅ Search
+// ✅ Search logic
 $search = $_GET['search'] ?? '';
-$searchQuery = "";  
+$searchQuery = "";
 $params = [];
 
 if (!empty($search)) {
@@ -23,45 +23,46 @@ if (!empty($search)) {
     $params[':search'] = "%$search%";
 }
 
-// ✅ Fetch data
-$stmt = $pdo->prepare("
+// ✅ Fetch Pending Alumni
+$stmtPending = $pdo->prepare("
     SELECT id, surname, given_name, course_year, email, created_at
-    FROM pending_alumni
+    FROM alumni_ccs
     WHERE status = 'pending' $searchQuery
     ORDER BY created_at DESC
 ");
-$stmt->execute($params);
-$pending = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmtPending->execute($params);
+$pending = $stmtPending->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt2 = $pdo->prepare("
-    SELECT id, surname, given_name, course_year, email, created_at
-    FROM active_alumni
-    WHERE 1 $searchQuery
-    ORDER BY created_at DESC
+// ✅ Fetch Active Alumni
+$stmtActive = $pdo->prepare("
+    SELECT id, surname, given_name, course_year, email, validated_date
+    FROM alumni_ccs
+    WHERE status = 'active' $searchQuery
+    ORDER BY validated_date DESC
 ");
-$stmt2->execute($params);
-$approved = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+$stmtActive->execute($params);
+$active = $stmtActive->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt3 = $pdo->prepare("
-    SELECT id, surname, given_name, course_year, email, created_at
-    FROM archived_alumni
-    WHERE 1 $searchQuery
-    ORDER BY created_at DESC
+// ✅ Fetch Archived Alumni
+$stmtArchived = $pdo->prepare("
+    SELECT id, surname, given_name, course_year, email, validated_date
+    FROM alumni_ccs
+    WHERE status = 'archived' $searchQuery
+    ORDER BY validated_date DESC
 ");
-$stmt3->execute($params);
-$archived = $stmt3->fetchAll(PDO::FETCH_ASSOC);
+$stmtArchived->execute($params);
+$archived = $stmtArchived->fetchAll(PDO::FETCH_ASSOC);
 
-// ✅ Counts
-$totalPending = $pdo->query("SELECT COUNT(*) FROM pending_alumni WHERE status = 'pending'")->fetchColumn();
-$totalApproved = $pdo->query("SELECT COUNT(*) FROM active_alumni")->fetchColumn();
-$totalArchived = $pdo->query("SELECT COUNT(*) FROM archived_alumni")->fetchColumn();
+// ✅ Stats
+$totalPending  = $pdo->query("SELECT COUNT(*) FROM alumni_ccs WHERE status = 'pending'")->fetchColumn();
+$totalActive   = $pdo->query("SELECT COUNT(*) FROM alumni_ccs WHERE status = 'active'")->fetchColumn();
+$totalArchived = $pdo->query("SELECT COUNT(*) FROM alumni_ccs WHERE status = 'archived'")->fetchColumn();
 ?>
-
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Admin Dashboard - Alumni System</title>
+  <title>Admin Dashboard - Alumni CCS</title>
   <link rel="stylesheet" href="../assets/css/styles.css">
   <style>
     body.default-program-bg {
@@ -151,9 +152,6 @@ $totalArchived = $pdo->query("SELECT COUNT(*) FROM archived_alumni")->fetchColum
         text-decoration: none;
         color: #dc3545;
     }
-    .nav-links a:hover {
-        text-decoration: underline;
-    }
     .flash-message {
         background: #ffe6e6;
         color: #a10000;
@@ -162,11 +160,6 @@ $totalArchived = $pdo->query("SELECT COUNT(*) FROM archived_alumni")->fetchColum
         border-radius: 5px;
         margin: 15px 0;
         font-weight: bold;
-    }
-    .flash-message.error {
-        background: #ffcccc;
-        color: #7a0000;
-        border-color: #ff9999;
     }
     h2 {
         margin-top: 40px;
@@ -177,7 +170,6 @@ $totalArchived = $pdo->query("SELECT COUNT(*) FROM archived_alumni")->fetchColum
   </style>
 </head>
 <body class="default-program-bg">
-
 <div class="mainContainer">
   <header>
     <h1>Admin Dashboard</h1>
@@ -190,143 +182,113 @@ $totalArchived = $pdo->query("SELECT COUNT(*) FROM archived_alumni")->fetchColum
   </header>
 
   <?php if ($flash): ?>
-      <div class="flash-message <?= str_starts_with($flash, '❌') ? 'error' : ''; ?>">
-        <?= htmlspecialchars($flash); ?>
-      </div>
+      <div class="flash-message"><?= htmlspecialchars($flash); ?></div>
   <?php endif; ?>
 
-  <!-- =======================
-       PENDING SUBMISSIONS
-  ======================= -->
-  <section>
-    <h2>Pending Submissions</h2>
-
-    <div class="search-bar">
-      <div class="stats">
-        Pending: <?= $totalPending ?> |
-        Approved: <?= $totalApproved ?> |
-        Archived: <?= $totalArchived ?>
-      </div>
-
-      <form method="GET" style="display:flex; gap:10px;">
-        <input type="text" name="search" placeholder="Search name/email"
-               value="<?= htmlspecialchars($search) ?>">
-        <button type="submit">Search</button>
-        <?php if (!empty($search)) : ?>
-          <a href="adminDashboard.php" style="text-decoration:none; color:#b30000;">Reset</a>
-        <?php endif; ?>
-      </form>
+  <div class="search-bar">
+    <div class="stats">
+      Pending: <?= $totalPending ?> |
+      Active: <?= $totalActive ?> |
+      Archived: <?= $totalArchived ?>
     </div>
 
-    <?php if (empty($pending)): ?>
-      <p>No pending submissions found.</p>
-    <?php else: ?>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Course / Year</th>
-            <th>Email</th>
-            <th>Date Submitted</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($pending as $r): ?>
-          <tr>
-            <td><?= $r['id']; ?></td>
-            <td><?= htmlspecialchars($r['surname'] . ', ' . $r['given_name']); ?></td>
-            <td><?= htmlspecialchars($r['course_year']); ?></td>
-            <td><?= htmlspecialchars($r['email']); ?></td>
-            <td><?= htmlspecialchars($r['created_at']); ?></td>
-            <td class="actions">
-              <a href="../pages/viewPending.php?id=<?= $r['id']; ?>">View</a>
-              <a href="../functions/approve.php?id=<?= $r['id']; ?>" onclick="return confirm('Approve this applicant?')">Approve</a>
-              <a href="../functions/reject.php?id=<?= $r['id']; ?>" onclick="return confirm('Reject this applicant?')">Reject</a>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-        </tbody>
-      </table>
-    <?php endif; ?>
-  </section>
+    <form method="GET" style="display:flex; gap:10px;">
+      <input type="text" name="search" placeholder="Search name/email"
+             value="<?= htmlspecialchars($search) ?>">
+      <button type="submit">Search</button>
+      <?php if (!empty($search)) : ?>
+        <a href="adminDashboard.php" style="color:#b30000; text-decoration:none;">Reset</a>
+      <?php endif; ?>
+    </form>
+  </div>
 
-  <!-- =======================
-       APPROVED ALUMNI
-  ======================= -->
+  <!-- PENDING LIST -->
   <section>
-    <h2>Approved Alumni</h2>
-
-    <?php if (empty($approved)): ?>
-      <p>No approved alumni found.</p>
+    <h2>Pending Applications</h2>
+    <?php if (empty($pending)): ?>
+      <p>No pending submissions.</p>
     <?php else: ?>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Course / Year</th>
-            <th>Email</th>
-            <th>Approved On</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($approved as $a): ?>
-          <tr>
-            <td><?= $a['id']; ?></td>
-            <td><?= htmlspecialchars($a['surname'] . ', ' . $a['given_name']); ?></td>
-            <td><?= htmlspecialchars($a['course_year']); ?></td>
-            <td><?= htmlspecialchars($a['email']); ?></td>
-            <td><?= htmlspecialchars($a['created_at']); ?></td>
-            <td class="actions">
-              <a href="../pages/viewPending.php?id=<?= $a['id']; ?>&from=active">View</a>
-              <a href="../functions/archive.php?id=<?= $a['id']; ?>" onclick="return confirm('Archive this alumni record? This will move it to the archive list.')">Archive</a>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-        </tbody>
-      </table>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Course / Year</th><th>Email</th><th>Date Submitted</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php foreach ($pending as $row): ?>
+        <tr>
+          <td><?= $row['id']; ?></td>
+          <td><?= htmlspecialchars($row['surname'] . ', ' . $row['given_name']); ?></td>
+          <td><?= htmlspecialchars($row['course_year']); ?></td>
+          <td><?= htmlspecialchars($row['email']); ?></td>
+          <td><?= htmlspecialchars($row['created_at']); ?></td>
+          <td class="actions">
+            <a href="../pages/viewPending.php?id=<?= $row['id']; ?>">View</a> |
+            <a href="../functions/approve.php?id=<?= $row['id']; ?>" onclick="return confirm('Approve this record?')">Approve</a> |
+            <a href="../functions/reject.php?id=<?= $row['id']; ?>" onclick="return confirm('Reject and archive this record?')">Reject</a>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
     <?php endif; ?>
   </section>
 
-  <!-- =======================
-       ARCHIVED ALUMNI
-  ======================= -->
+  <!-- ACTIVE LIST -->
+  <section>
+    <h2>Active Alumni</h2>
+    <?php if (empty($active)): ?>
+      <p>No active alumni yet.</p>
+    <?php else: ?>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Course / Year</th><th>Email</th><th>Validated On</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php foreach ($active as $row): ?>
+        <tr>
+          <td><?= $row['id']; ?></td>
+          <td><?= htmlspecialchars($row['surname'] . ', ' . $row['given_name']); ?></td>
+          <td><?= htmlspecialchars($row['course_year']); ?></td>
+          <td><?= htmlspecialchars($row['email']); ?></td>
+          <td><?= htmlspecialchars($row['validated_date']); ?></td>
+          <td class="actions">
+            <a href="../pages/viewPending.php?id=<?= $row['id']; ?>">View</a> |
+            <a href="../functions/reject.php?id=<?= $row['id']; ?>" onclick="return confirm('Archive this alumni record?')">Archive</a>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
+    <?php endif; ?>
+  </section>
+
+  <!-- ARCHIVED LIST -->
   <section>
     <h2>Archived Alumni</h2>
-
     <?php if (empty($archived)): ?>
-      <p>No archived alumni found.</p>
+      <p>No archived alumni yet.</p>
     <?php else: ?>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Course / Year</th>
-            <th>Email</th>
-            <th>Archived On</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($archived as $ar): ?>
-          <tr>
-            <td><?= $ar['id']; ?></td>
-            <td><?= htmlspecialchars($ar['surname'] . ', ' . $ar['given_name']); ?></td>
-            <td><?= htmlspecialchars($ar['course_year']); ?></td>
-            <td><?= htmlspecialchars($ar['email']); ?></td>
-            <td><?= htmlspecialchars($ar['created_at']); ?></td>
-            <td class="actions">
-              <a href="../pages/viewPending.php?id=<?= $ar['id']; ?>&from=archive">View</a>
-              <a href="../functions/restore.php?id=<?= $ar['id']; ?>" onclick="return confirm('Restore this alumni back to Approved list?')">Restore</a>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-        </tbody>
-      </table>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Course / Year</th><th>Email</th><th>Archived On</th>
+        </tr>
+      </thead>
+      <tbody>
+      <?php foreach ($archived as $row): ?>
+        <tr>
+          <td><?= $row['id']; ?></td>
+          <td><?= htmlspecialchars($row['surname'] . ', ' . $row['given_name']); ?></td>
+          <td><?= htmlspecialchars($row['course_year']); ?></td>
+          <td><?= htmlspecialchars($row['email']); ?></td>
+          <td><?= htmlspecialchars($row['validated_date']); ?></td>
+        </tr>
+      <?php endforeach; ?>
+      </tbody>
+    </table>
     <?php endif; ?>
   </section>
 </div>

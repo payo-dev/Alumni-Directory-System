@@ -6,15 +6,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Hardcoded admin credentials (temporary)
+// Hardcoded admin credentials (temporary fallback)
 define('ADMIN_USERNAME', 'payo.dev');
 define('ADMIN_PASSWORD', 'admin123');
-
-// Helper function for redirects
-function redirect($path) {
-    header("Location: " . BASE_URL . "/pages/thankYou.php?id=" . $insertId);
-    exit();
-}
 
 // ======================================================
 // DATABASE CONNECTION CONFIGURATION
@@ -22,7 +16,7 @@ function redirect($path) {
 
 // Edit these values if your DB credentials differ
 define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'ccs_alumni_db');
+define('DB_NAME', 'alumni_db');
 define('DB_USER', 'root');
 define('DB_PASS', ''); // Default for XAMPP = empty string
 
