@@ -1,65 +1,10 @@
 <?php
 // ==========================================================
-<<<<<<< Updated upstream
-// functions/submitForm.php — Handles final alumni form submission
-=======
 // functions/submitForm.php — Handles Final Submission
->>>>>>> Stashed changes
 // ==========================================================
 session_start();
 require_once __DIR__ . '/../classes/database.php';
 
-<<<<<<< Updated upstream
-try {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        header("Location: ../index.php");
-        exit;
-    }
-
-    $formData = $_SESSION['form_data'] ?? [];
-
-    if (empty($formData)) {
-        throw new Exception("No form data found. Please complete the form again.");
-    }
-
-    $pdo = Database::getPDO();
-
-    $fieldsMap = [
-        'type_of_application' => 'type_of_application',
-        'student_id'          => 'student_id',
-        'batch_name'          => 'batch_name',
-        'surname'             => 'surname',
-        'given_name'          => 'given_name',
-        'middle_name'         => 'middle_name',
-        'course_year'         => 'course_year',
-        'present_address'     => 'presentAddress',
-        'contact_number'      => 'contactNumber',
-        'email'               => 'emailAddress',
-        'birthday'            => 'dateOfBirth',
-        'elementary_school'   => 'elemSchool',
-        'elementary_yr'       => 'elemYear',
-        'junior_high_school'  => 'hsSchool',
-        'junior_high_yr'      => 'hsYear',
-        'tertiary_school'     => 'degree',
-        'tertiary_yr'         => 'collegeYear',
-        'company_name'        => 'companyName',
-        'position'            => 'jobTitle',
-        'company_address'     => 'companyAddress',
-        'emergency_name'      => 'emergencyName',
-        'emergency_address'   => 'emergencyAddress',
-        'emergency_contact'   => 'emergencyContact',
-    ];
-
-    $insertCols = [];
-    $insertVals = [];
-    $params = [];
-
-    foreach ($fieldsMap as $dbCol => $formKey) {
-        if (!empty($formData[$formKey])) {
-            $insertCols[] = "`$dbCol`";
-            $insertVals[] = ":$dbCol";
-            $params[":$dbCol"] = trim($formData[$formKey]);
-=======
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_SESSION['form_data'])) {
     header("Location: ../index.php");
     exit;
@@ -95,7 +40,6 @@ if (!empty($formData['2x2_picture_path'])) {
         $finalPath = $finalDir . DIRECTORY_SEPARATOR . $newName;
         if (move_uploaded_file($_FILES['2x2_picture']['tmp_name'], $finalPath)) {
             $picturePath = 'assets/alumni_2x2/' . $newName;
->>>>>>> Stashed changes
         }
     }
 
@@ -121,8 +65,6 @@ if (!empty($formData['2x2_picture_path'])) {
     echo "<p>" . htmlspecialchars($e->getMessage()) . "</p>";
     exit;
 }
-<<<<<<< Updated upstream
-=======
 
 // --------------------------------------
 // 2️⃣ Prepare Data for alumni table
@@ -253,4 +195,3 @@ if (is_dir($tmpDir)) {
 header("Location: ../pages/thankYou.php?id=" . urlencode($studentId));
 exit;
 ?>
->>>>>>> Stashed changes

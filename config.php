@@ -8,13 +8,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-<<<<<<< Updated upstream
-// Hardcoded admin credentials (temporary)
-=======
 // ======================================================
 // ADMIN CREDENTIALS (Fallback if admin_account table fails)
 // ======================================================
->>>>>>> Stashed changes
 define('ADMIN_USERNAME', 'payo.dev');
 define('ADMIN_PASSWORD', 'admin123');
 
@@ -30,11 +26,7 @@ function redirect($path) {
 
 // ✅ Database credentials for local XAMPP setup
 define('DB_HOST', '127.0.0.1');
-<<<<<<< Updated upstream
-define('DB_NAME', 'ccs_alumni_db');
-=======
 define('DB_NAME', 'old_alumni_db'); // <-- Your working database name
->>>>>>> Stashed changes
 define('DB_USER', 'root');
 define('DB_PASS', ''); // XAMPP default = empty password
 

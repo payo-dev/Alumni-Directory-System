@@ -1,13 +1,9 @@
 <?php
-<<<<<<< Updated upstream
-// File: pages/alumniInfo.php
-=======
 // ==========================================================
 // pages/alumniInfo.php — Personal Info Section (New + Renewal)
 // ==========================================================
 $isRenewal = ($_GET['type'] ?? '') === 'Renewal';
 $form = $_SESSION['form_data'] ?? [];
->>>>>>> Stashed changes
 
 $next_section = 'education'; 
 $current_url_params = "program={$current_program}&type={$application_type}";
@@ -16,49 +12,6 @@ $current_url_params = "program={$current_program}&type={$application_type}";
 <form action="index.php?section=<?php echo $next_section; ?>&<?php echo $current_url_params; ?>" method="POST" class="alumni-info-form section-form">
     <p class="section-instruction">Please fill in your current and personal details.</p>
 
-<<<<<<< Updated upstream
-    <fieldset>
-        <legend>Full Name</legend>
-        <div class="form-group">
-            <label for="surname">Last Name</label>
-            <input type="text" id="surname" name="surname" 
-                   value="<?php echo htmlspecialchars($_SESSION['form_data']['surname'] ?? ''); ?>" required>
-        </div>
-
-        <div class="form-group">
-            <label for="given_name">First Name</label>
-            <input type="text" id="given_name" name="given_name" 
-                   value="<?php echo htmlspecialchars($_SESSION['form_data']['given_name'] ?? ''); ?>" required>
-        </div>
-
-        <div class="form-group">
-            <label for="middle_name">Middle Name</label>
-            <input type="text" id="middle_name" name="middle_name" 
-                   value="<?php echo htmlspecialchars($_SESSION['form_data']['middle_name'] ?? ''); ?>">
-        </div>
-    </fieldset>
-
-    <div class="form-group">
-        <label for="programCourse">Program/Course</label>
-        <input type="text" id="programCourse" name="course_year"
-               value="<?php echo htmlspecialchars(strtoupper($current_program)); ?>" readonly required>
-    </div>
-
-    <div class="form-group">
-        <label for="gender">Gender</label>
-        <select id="gender" name="gender" required>
-            <option value="">Select Gender</option>
-            <option value="Male" <?php echo (($_SESSION['form_data']['gender'] ?? '') == 'Male') ? 'selected' : ''; ?>>Male</option>
-            <option value="Female" <?php echo (($_SESSION['form_data']['gender'] ?? '') == 'Female') ? 'selected' : ''; ?>>Female</option>
-            <option value="Other" <?php echo (($_SESSION['form_data']['gender'] ?? '') == 'Other') ? 'selected' : ''; ?>>Other</option>
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="dateOfBirth">Date of Birth</label>
-        <input type="date" id="dateOfBirth" name="birthday" 
-               value="<?php echo htmlspecialchars($_SESSION['form_data']['birthday'] ?? ''); ?>" required>
-=======
   <p class="section-instruction">
     Please fill in your current and personal details.
     <?php if ($isRenewal): ?>
@@ -192,7 +145,6 @@ $current_url_params = "program={$current_program}&type={$application_type}";
       <input type="tel" id="contactNumber" name="contact_number"
              value="<?= htmlspecialchars($form['contact_number'] ?? '') ?>"
              <?= $isRenewal ? '' : 'required'; ?>>
->>>>>>> Stashed changes
     </div>
 
     <div class="form-group">
@@ -205,10 +157,7 @@ $current_url_params = "program={$current_program}&type={$application_type}";
     </div>
   </div>
 
-<<<<<<< Updated upstream
-=======
   <div class="two-col">
->>>>>>> Stashed changes
     <div class="form-group">
       <label for="birthday">Birthday</label>
       <input type="date" id="birthday" name="birthday"
@@ -217,10 +166,6 @@ $current_url_params = "program={$current_program}&type={$application_type}";
     </div>
 
     <div class="form-group">
-<<<<<<< Updated upstream
-        <label for="presentAddress">Present Address</label>
-        <textarea id="presentAddress" name="present_address" rows="3" required><?php echo htmlspecialchars($_SESSION['form_data']['present_address'] ?? ''); ?></textarea>
-=======
       <label for="blood_type">Blood Type</label>
       <select id="blood_type" name="blood_type" <?= $isRenewal ? 'disabled' : 'required'; ?>>
         <option value="">Select</option>
@@ -228,18 +173,13 @@ $current_url_params = "program={$current_program}&type={$application_type}";
           <option value="<?= $b ?>" <?= (($form['blood_type'] ?? '') === $b) ? 'selected' : '' ?>><?= $b ?></option>
         <?php endforeach; ?>
       </select>
->>>>>>> Stashed changes
     </div>
   </div>
 
-<<<<<<< Updated upstream
-    <button type="submit" class="next-section-button">Proceed to Educational Background</button>
-=======
   <!-- Button -->
   <button type="submit" class="next-section-button">
     Save and Proceed to Educational Background
   </button>
->>>>>>> Stashed changes
 </form>
 
 <style>

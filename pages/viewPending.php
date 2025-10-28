@@ -1,11 +1,5 @@
 <?php
-<<<<<<< Updated upstream
-// ==========================================================
-// pages/viewPending.php — View detailed pending alumni info
-// ==========================================================
-=======
 // pages/viewPending.php
->>>>>>> Stashed changes
 session_start();
 require_once __DIR__ . '/../classes/auth.php';
 require_once __DIR__ . '/../classes/database.php';
@@ -15,16 +9,6 @@ $pdo = Database::getPDO();
 $student_id = $_GET['id'] ?? null;
 if (!$student_id) die("<h3>Invalid record ID.</h3>");
 
-<<<<<<< Updated upstream
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if ($id <= 0) die("<h3>Invalid record ID.</h3>");
-
-$stmt = $pdo->prepare("SELECT * FROM pending_alumni WHERE id = ?");
-$stmt->execute([$id]);
-$record = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$record) die("<h3>No record found with that ID.</h3>");
-=======
 // ✅ FIXED: Use year_graduated instead of year_grad
 $sql = "
   SELECT a.*, c.course, c.year_graduated
@@ -37,39 +21,10 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute([':student_id' => $student_id]);
 $record = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$record) die("<h3>No record found for student ID: " . htmlspecialchars($student_id) . "</h3>");
->>>>>>> Stashed changes
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<<<<<<< Updated upstream
-  <meta charset="UTF-8">
-  <title>View Pending Alumni</title>
-  <link rel="stylesheet" href="/assets/css/styles.css">
-  <style>
-    body { background: #f7f7f7; font-family: Arial, sans-serif; color: #333; }
-    .container {
-      width: 80%; margin: 40px auto; background: #fff; padding: 20px 40px;
-      border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    h1 { text-align: center; margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td {
-      padding: 10px; border: 1px solid #ddd; text-align: left; vertical-align: top;
-    }
-    th { background: #f2f2f2; width: 30%; }
-    .actions { margin-top: 20px; text-align: center; }
-    .actions a {
-      margin: 0 10px; padding: 10px 20px; border-radius: 5px;
-      text-decoration: none; color: white; transition: background 0.3s;
-    }
-    .approve { background: #28a745; }
-    .approve:hover { background: #218838; }
-    .reject { background: #dc3545; }
-    .reject:hover { background: #c82333; }
-    .back { background: #6c757d; }
-    .back:hover { background: #5a6268; }
-=======
   <meta charset="utf-8">
   <title>View Alumni Record</title>
   <link rel="stylesheet" href="/assets/css/styles.css">
@@ -85,16 +40,11 @@ if (!$record) die("<h3>No record found for student ID: " . htmlspecialchars($stu
     .approve { background:#28a745; }
     .reject { background:#dc3545; }
     .back { background:#6c757d; }
->>>>>>> Stashed changes
   </style>
 </head>
 <body>
   <div class="container">
-<<<<<<< Updated upstream
-    <h1>Pending Alumni Record</h1>
-=======
     <h1>Alumni Record — <?= htmlspecialchars($record['student_id']); ?></h1>
->>>>>>> Stashed changes
 
     <table>
       <tbody>
@@ -132,21 +82,10 @@ if (!$record) die("<h3>No record found for student ID: " . htmlspecialchars($stu
     </table>
 
     <div class="actions">
-<<<<<<< Updated upstream
-      <a href="../functions/approve.php?id=<?= $record['id']; ?>"
-         class="approve"
-         onclick="return confirm('✅ Approve this applicant?');">Approve</a>
-
-      <a href="../functions/reject.php?id=<?= $record['id']; ?>"
-         class="reject"
-         onclick="return confirm('⚠️ Reject this applicant and move to Archive?');">Reject</a>
-
-=======
       <?php if (($record['status'] ?? '') === 'pending'): ?>
         <a href="../functions/approve.php?id=<?= urlencode($record['student_id']); ?>" class="approve" onclick="return confirm('Approve this applicant?')">Approve</a>
         <a href="../functions/reject.php?id=<?= urlencode($record['student_id']); ?>" class="reject" onclick="return confirm('Reject and archive this applicant?')">Reject</a>
       <?php endif; ?>
->>>>>>> Stashed changes
       <a href="../pages/adminDashboard.php" class="back">Back to Dashboard</a>
     </div>
   </div>
