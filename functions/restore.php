@@ -1,52 +1,25 @@
 <?php
-// ==========================================================
-// functions/restore.php — Restore Archived Alumni
-// ==========================================================
+// functions/restore.php
 session_start();
-require_once __DIR__ . '/../classes/database.php';
 require_once __DIR__ . '/../classes/auth.php';
+require_once __DIR__ . '/../classes/database.php';
 Auth::restrict();
 
 $pdo = Database::getPDO();
 
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-if ($id <= 0) {
-    $_SESSION['flash_message'] = "❌ Invalid alumni ID.";
-    header("Location: ../pages/adminDashboard.php");
-    exit;
+$student_id = $_GET['id'] ?? '';
+if ($student_id === '') {
+    die("Invalid student ID.");
 }
 
-try {
-    // ✅ Fetch the record from archived_alumni
-    $stmt = $pdo->prepare("SELECT * FROM archived_alumni WHERE id = ?");
-    $stmt->execute([$id]);
-    $record = $stmt->fetch(PDO::FETCH_ASSOC);
+$stmt = $pdo->prepare("
+    UPDATE alumni
+    SET status = 'active',
+        validated_date = NOW()
+    WHERE student_id = :student_id
+");
+$stmt->execute([':student_id' => $student_id]);
 
-    if (!$record) {
-        $_SESSION['flash_message'] = "❌ Record not found in archive.";
-        header("Location: ../pages/adminDashboard.php");
-        exit;
-    }
-
-    // ✅ Insert into active_alumni
-    $fields = array_keys($record);
-    $columns = implode(',', $fields);
-    $placeholders = implode(',', array_fill(0, count($fields), '?'));
-    $values = array_values($record);
-
-    $insert = $pdo->prepare("INSERT INTO active_alumni ($columns) VALUES ($placeholders)");
-    $insert->execute($values);
-
-    // ✅ Delete from archived_alumni
-    $delete = $pdo->prepare("DELETE FROM archived_alumni WHERE id = ?");
-    $delete->execute([$id]);
-
-    $_SESSION['flash_message'] = "♻️ Alumni record restored successfully.";
-} catch (Exception $e) {
-    $_SESSION['flash_message'] = "❌ Error restoring record: " . $e->getMessage();
-}
-
+$_SESSION['flash_message'] = "♻️ Alumni record ($student_id) restored to active.";
 header("Location: ../pages/adminDashboard.php");
 exit;
-?>
