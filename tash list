@@ -1,0 +1,17 @@
+[33m01a18c6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mj[m[33m, [m[1;31morigin/old_alumni_database[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mold_alumni_database[m[33m, [m[1;32mmain[m[33m)[m HEAD@{0}: checkout: moving from old_alumni_database to j
+[33m01a18c6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mj[m[33m, [m[1;31morigin/old_alumni_database[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mold_alumni_database[m[33m, [m[1;32mmain[m[33m)[m HEAD@{1}: checkout: moving from main to old_alumni_database
+[33m01a18c6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mj[m[33m, [m[1;31morigin/old_alumni_database[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mold_alumni_database[m[33m, [m[1;32mmain[m[33m)[m HEAD@{2}: checkout: moving from biglang-likod to main
+[33m46ec6af[m[33m ([m[1;31morigin/biglang-likod[m[33m, [m[1;32mbiglang-likod[m[33m)[m HEAD@{3}: checkout: moving from old_alumni_database to biglang-likod
+[33m01a18c6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mj[m[33m, [m[1;31morigin/old_alumni_database[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mold_alumni_database[m[33m, [m[1;32mmain[m[33m)[m HEAD@{4}: checkout: moving from biglang-likod to old_alumni_database
+[33m46ec6af[m[33m ([m[1;31morigin/biglang-likod[m[33m, [m[1;32mbiglang-likod[m[33m)[m HEAD@{5}: checkout: moving from old_alumni_database to biglang-likod
+[33m01a18c6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mj[m[33m, [m[1;31morigin/old_alumni_database[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mold_alumni_database[m[33m, [m[1;32mmain[m[33m)[m HEAD@{6}: checkout: moving from biglang-likod to old_alumni_database
+[33m46ec6af[m[33m ([m[1;31morigin/biglang-likod[m[33m, [m[1;32mbiglang-likod[m[33m)[m HEAD@{7}: reset: moving to HEAD
+[33m46ec6af[m[33m ([m[1;31morigin/biglang-likod[m[33m, [m[1;32mbiglang-likod[m[33m)[m HEAD@{8}: commit: newdb
+[33m01a18c6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mj[m[33m, [m[1;31morigin/old_alumni_database[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mold_alumni_database[m[33m, [m[1;32mmain[m[33m)[m HEAD@{9}: checkout: moving from main to biglang-likod
+[33m01a18c6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mj[m[33m, [m[1;31morigin/old_alumni_database[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mold_alumni_database[m[33m, [m[1;32mmain[m[33m)[m HEAD@{10}: commit: traversal update
+[33mde5bd87[m HEAD@{11}: commit: 90% done
+[33mc9c449f[m HEAD@{12}: commit: FINAL 90% RAAAAAH
+[33ma659fc2[m HEAD@{13}: pull --ff --recurse-submodules --progress origin: Fast-forward
+[33m5c54195[m HEAD@{14}: commit: drop down fixed
+[33m6760dc7[m HEAD@{15}: commit: first commit type shift
+[33m306e9c5[m HEAD@{16}: commit (initial): Initial commit

@@ -1,12 +1,16 @@
 <?php
 // ======================================================
-// SESSION + ADMIN CONFIG
+// CONFIGURATION FILE — Global System Settings
 // ======================================================
+
+// Start session globally
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Hardcoded admin credentials (temporary)
+// ======================================================
+// ADMIN CREDENTIALS (Fallback if admin_account table fails)
+// ======================================================
 define('ADMIN_USERNAME', 'payo.dev');
 define('ADMIN_PASSWORD', 'admin123');
 
@@ -17,15 +21,21 @@ function redirect($path) {
 }
 
 // ======================================================
-// DATABASE CONNECTION CONFIGURATION
+// DATABASE CONNECTION SETTINGS
 // ======================================================
 
-// Edit these values if your DB credentials differ
+// ✅ Database credentials for local XAMPP setup
 define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'ccs_alumni_db');
+define('DB_NAME', 'old_alumni_db'); // <-- Your working database name
 define('DB_USER', 'root');
-define('DB_PASS', ''); // Default for XAMPP = empty string
+define('DB_PASS', ''); // XAMPP default = empty password
 
+// ✅ Optional: define base URL for redirects
+define('BASE_URL', '/cssAlumniDirectorySystem/');
+
+// ======================================================
+// GLOBAL PDO INSTANCE (optional use outside classes)
+// ======================================================
 try {
     $pdo = new PDO(
         "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4",

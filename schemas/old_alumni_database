@@ -1,0 +1,2 @@
+CREATE DATABASE IF NOT EXISTS old_alumni_db;
+USE old_alumni_db;

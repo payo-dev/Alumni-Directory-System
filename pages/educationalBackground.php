@@ -1,60 +1,77 @@
 <?php
-// File: pages/educationalBackground.php
+// ==========================================================
+// pages/educationalBackground.php — Educational Background Section
+// ==========================================================
+$form = $_SESSION['form_data'] ?? [];
+$isRenewal = ($_GET['type'] ?? '') === 'Renewal';
 
-// These variables are available from index.php
-// $current_program, $application_type
-
-// The next section is 'employment' (if Renewal) or 'emergency' (if New)
-$next_section = ($application_type === 'Renewal') ? 'employment' : 'emergency'; 
+$next_section = 'employment';
 $current_url_params = "program={$current_program}&type={$application_type}";
 ?>
 
-<form action="index.php?section=<?php echo $next_section; ?>&<?php echo $current_url_params; ?>" method="POST" class="educational-background-form section-form">
-    <p class="section-instruction">Please provide details of your academic journey.</p>
+<form action="index.php?section=<?php echo $next_section; ?>&<?php echo $current_url_params; ?>"
+      method="POST" enctype="multipart/form-data"
+      class="section-form">
 
+  <p class="section-instruction">
+    Please provide your complete educational background.
+    <?php if ($isRenewal): ?>
+      <br><strong style="color:#007bff;">(All fields below are static for renewal.)</strong>
+    <?php endif; ?><br><strong style="color:#dc3545;">(Required for new applicants.)</strong>
+  </p>
+
+  <?php
+  $sections = [
+    'Elementary' => ['elemSchool', 'elemYear'],
+    'Junior High School' => ['hsSchool', 'hsYear'],
+    'Senior High School' => ['shSchool', 'shYear'],
+    'Tertiary' => ['degree', 'collegeYear'],
+    'Graduate School' => ['gradSchool', 'gradYear'],
+  ];
+
+  foreach ($sections as $label => [$school, $year]): ?>
     <fieldset>
-        <legend>Elementary Education</legend>
+      <legend><?= $label ?></legend>
+      <div class="two-col">
         <div class="form-group">
-            <label for="elemSchool">School Name</label>
-            <input type="text" id="elemSchool" name="elemSchool" 
-                   value="<?php echo htmlspecialchars($_SESSION['form_data']['elemSchool'] ?? ''); ?>" required>
+          <label for="<?= $school ?>">School Name</label>
+          <input type="text" id="<?= $school ?>" name="<?= $school ?>"
+                 value="<?= htmlspecialchars($form[$school] ?? '') ?>"
+                 <?= $isRenewal ? 'readonly' : ($label === 'Graduate School' ? '' : 'required'); ?>>
         </div>
-        <div class="form-group">
-            <label for="elemYear">Year Graduated</label>
-            <input type="number" id="elemYear" name="elemYear" min="1950" max="<?php echo date('Y'); ?>" placeholder="YYYY" 
-                   value="<?php echo htmlspecialchars($_SESSION['form_data']['elemYear'] ?? ''); ?>" required>
-        </div>
-    </fieldset>
 
-    <fieldset>
-        <legend>Secondary Education</legend>
         <div class="form-group">
-            <label for="hsSchool">School Name</label>
-            <input type="text" id="hsSchool" name="hsSchool" 
-                   value="<?php echo htmlspecialchars($_SESSION['form_data']['hsSchool'] ?? ''); ?>" required>
+          <label for="<?= $year ?>">Year Graduated</label>
+          <input type="number" id="<?= $year ?>" name="<?= $year ?>"
+                 value="<?= htmlspecialchars($form[$year] ?? '') ?>"
+                 min="1900" max="<?= date('Y'); ?>"
+                 <?= $isRenewal ? 'readonly' : ($label === 'Graduate School' ? '' : 'required'); ?>>
         </div>
-        <div class="form-group">
-            <label for="hsYear">Year Graduated</label>
-            <input type="number" id="hsYear" name="hsYear" min="1950" max="<?php echo date('Y'); ?>" placeholder="YYYY" 
-                   value="<?php echo htmlspecialchars($_SESSION['form_data']['hsYear'] ?? ''); ?>" required>
-        </div>
+      </div>
     </fieldset>
+  <?php endforeach; ?>
 
-    <fieldset>
-        <legend>College Education (WMSU)</legend>
-        <div class="form-group">
-            <label for="degree">Degree/Course</label>
-            <input type="text" id="degree" name="degree" 
-                   value="<?php echo htmlspecialchars($_SESSION['form_data']['degree'] ?? strtoupper($current_program)); ?>" required readonly>
-        </div>
-        <div class="form-group">
-            <label for="collegeYear">Year Graduated from WMSU</label>
-            <input type="number" id="collegeYear" name="collegeYear" min="1950" max="<?php echo date('Y'); ?>" placeholder="YYYY" 
-                   value="<?php echo htmlspecialchars($_SESSION['form_data']['collegeYear'] ?? ''); ?>" required>
-        </div>
-    </fieldset>
-
-    <button type="submit" class="next-section-button">
-        Proceed to <?php echo ($application_type === 'Renewal') ? 'Employment Record' : 'Emergency Contact'; ?>
-    </button>
+  <button type="submit" class="next-section-button">
+    Save and Proceed to Employment Record
+  </button>
 </form>
+
+<style>
+.two-col {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.two-col .form-group {
+  flex: 1;
+  min-width: 240px;
+}
+@media (max-width: 768px) {
+  .two-col {
+    flex-direction: column;
+  }
+  fieldset legend {
+    font-size: 1.1em;
+  }
+}
+</style>
