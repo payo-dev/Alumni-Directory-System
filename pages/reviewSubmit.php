@@ -57,22 +57,22 @@ if (empty($form)) {
   <div class="review-card">
     <h2>Employment Record</h2>
     <ul>
-      <li><strong>Company Name:</strong> <?= htmlspecialchars($form['companyName'] ?? '') ?></li>
-      <li><strong>Position:</strong> <?= htmlspecialchars($form['jobTitle'] ?? '') ?></li>
-      <li><strong>Address:</strong> <?= htmlspecialchars($form['companyAddress'] ?? '') ?></li>
-      <li><strong>Contact No.:</strong> <?= htmlspecialchars($form['companyContact'] ?? '') ?></li>
+      <li><strong>Company Name:</strong> <?= htmlspecialchars($form['company_name'] ?? $form['companyName'] ?? '') ?></li>
+      <li><strong>Position:</strong> <?= htmlspecialchars($form['position'] ?? $form['jobTitle'] ?? '') ?></li>
+      <li><strong>Address:</strong> <?= htmlspecialchars($form['company_address'] ?? $form['companyAddress'] ?? '') ?></li>
+      <li><strong>Contact No.:</strong> <?= htmlspecialchars($form['company_contact'] ?? $form['companyContact'] ?? '') ?></li>
     </ul>
   </div>
 
   <!-- ========================== -->
-  <!-- EMERGENCY CONTACT -->
+  <!-- EMERGENCY CONTACT (OPTIONAL) -->
   <!-- ========================== -->
   <div class="review-card">
-    <h2>Emergency Contact</h2>
+    <h2>Emergency Contact (Optional)</h2>
     <ul>
-      <li><strong>Name:</strong> <?= htmlspecialchars($form['emergencyName'] ?? '') ?></li>
-      <li><strong>Address:</strong> <?= htmlspecialchars($form['emergencyAddress'] ?? '') ?></li>
-      <li><strong>Contact No.:</strong> <?= htmlspecialchars($form['emergencyContact'] ?? '') ?></li>
+      <li><strong>Name:</strong> <?= htmlspecialchars($form['emergency_name'] ?? $form['emergencyName'] ?? '') ?></li>
+      <li><strong>Address:</strong> <?= htmlspecialchars($form['emergency_address'] ?? $form['emergencyAddress'] ?? '') ?></li>
+      <li><strong>Contact No.:</strong> <?= htmlspecialchars($form['emergency_contact'] ?? $form['emergencyContact'] ?? '') ?></li>
     </ul>
   </div>
 

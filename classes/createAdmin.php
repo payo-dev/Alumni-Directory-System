@@ -1,5 +1,9 @@
 <?php
-require_once 'classes/database.php';
+// ==========================================================
+// classes/createAdmin.php — One-Time Admin Seeder
+// ==========================================================
+require_once __DIR__ . '/database.php';
+
 $pdo = Database::getPDO();
 
 $username = 'payo.dev';

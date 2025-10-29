@@ -78,6 +78,26 @@ if (empty($form)) {
       </div>
     </fieldset>
 
+    <fieldset>
+  <legend>Emergency Contact (Optional)</legend>
+
+  <div class="form-group">
+    <label>Contact Name</label>
+    <input type="text" name="emergency_name" value="<?= htmlspecialchars($form['emergency_name'] ?? '') ?>">
+  </div>
+
+  <div class="form-group">
+    <label>Address</label>
+    <input type="text" name="emergency_address" value="<?= htmlspecialchars($form['emergency_address'] ?? '') ?>">
+  </div>
+
+  <div class="form-group">
+    <label>Contact Number</label>
+    <input type="text" name="emergency_contact" value="<?= htmlspecialchars($form['emergency_contact'] ?? '') ?>">
+  </div>
+</fieldset>
+
+
     <button type="submit" class="submit-btn">✅ Submit Renewal</button>
     <a href="../pages/viewCurrentRecord.php?student_id=<?= urlencode($form['student_id']) ?>" class="view-btn">👁️ View Current Record</a>
   </form>

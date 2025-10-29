@@ -1,40 +1,107 @@
 <?php
-// pages/reportGenerator.php
+// ==========================================================
+// pages/reportGenerator.php — Advanced Report Generator (Phases 1–3 + Filter-Synced PDF & CSV)
+// ==========================================================
 require_once __DIR__ . '/../classes/auth.php';
 require_once __DIR__ . '/../classes/database.php';
 Auth::restrict();
 
 $pdo = Database::getPDO();
 
-// Fetch available columns from both tables (safe list)
+/* ==========================================================
+   1️⃣ — Fetch Column Info for Checkbox Selection
+   ========================================================== */
 $columns = [];
-
-// fetch columns for alumni
-$stmt = $pdo->query("SHOW COLUMNS FROM alumni");
-while ($col = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    $name = $col['Field'];
-    $columns["alumni.$name"] = "alumni.$name";
+foreach (['alumni', 'ccs_alumni'] as $table) {
+    $stmt = $pdo->query("SHOW COLUMNS FROM {$table}");
+    while ($col = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $columns["{$table}.{$col['Field']}"] = "{$table}.{$col['Field']}";
+    }
 }
 
-// fetch columns for ccs_alumni (prefix to avoid collisions)
-$stmt = $pdo->query("SHOW COLUMNS FROM ccs_alumni");
-while ($col = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    $name = $col['Field'];
-    $columns["ccs_alumni.$name"] = "ccs_alumni.$name";
-}
-
-// Get distinct filter values (course & year_graduated from ccs_alumni, status from alumni)
-$courses = $pdo->query("SELECT DISTINCT course FROM ccs_alumni ORDER BY course")->fetchAll(PDO::FETCH_COLUMN);
-$years = $pdo->query("SELECT DISTINCT year_graduated FROM ccs_alumni ORDER BY year_graduated DESC")->fetchAll(PDO::FETCH_COLUMN);
+/* ==========================================================
+   2️⃣ — Load Filter Dropdown Data
+   ========================================================== */
+$courses  = $pdo->query("SELECT DISTINCT course FROM ccs_alumni WHERE course <> '' ORDER BY course")->fetchAll(PDO::FETCH_COLUMN);
+$years    = $pdo->query("SELECT DISTINCT year_graduated FROM ccs_alumni WHERE year_graduated IS NOT NULL ORDER BY year_graduated DESC")->fetchAll(PDO::FETCH_COLUMN);
 $statuses = $pdo->query("SELECT DISTINCT status FROM alumni ORDER BY status")->fetchAll(PDO::FETCH_COLUMN);
+$cities   = $pdo->query("SELECT DISTINCT city_municipality FROM alumni WHERE city_municipality <> '' ORDER BY city_municipality ASC")->fetchAll(PDO::FETCH_COLUMN);
 
-// small helper for pretty labels
-function prettyLabel($colKey) {
-    // colKey like "alumni.student_id" or "ccs_alumni.year_graduated"
-    $parts = explode('.', $colKey);
-    $label = end($parts);
-    $label = str_replace('_', ' ', $label);
-    return ucwords($label);
+/* ==========================================================
+   3️⃣ — Handle Preview Query
+   ========================================================== */
+$summary = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $filterCourse  = trim($_POST['filter_course'] ?? '');
+    $filterYear    = trim($_POST['filter_year'] ?? '');
+    $filterStatus  = trim($_POST['filter_status'] ?? '');
+    $filterCity    = trim($_POST['filter_city'] ?? '');
+    $filterEmp     = trim($_POST['filter_employment'] ?? '');
+    $dateFrom      = trim($_POST['date_from'] ?? '');
+    $dateTo        = trim($_POST['date_to'] ?? '');
+
+    $where = [];
+    $params = [];
+
+    if ($filterCourse !== '') {
+        $where[] = "c.course = :course";
+        $params[':course'] = $filterCourse;
+    }
+    if ($filterYear !== '') {
+        $where[] = "c.year_graduated = :yr";
+        $params[':yr'] = $filterYear;
+    }
+    if ($filterStatus !== '') {
+        $where[] = "a.status = :status";
+        $params[':status'] = $filterStatus;
+    }
+    if ($filterCity !== '') {
+        $where[] = "a.city_municipality = :city";
+        $params[':city'] = $filterCity;
+    }
+    if ($filterEmp === 'employed') {
+        $where[] = "(a.company_name IS NOT NULL AND TRIM(a.company_name) <> '')";
+    } elseif ($filterEmp === 'unemployed') {
+        $where[] = "(a.company_name IS NULL OR TRIM(a.company_name) = '')";
+    }
+    if ($dateFrom !== '' && $dateTo !== '') {
+        $where[] = "DATE(a.created_at) BETWEEN :from AND :to";
+        $params[':from'] = $dateFrom;
+        $params[':to']   = $dateTo;
+    }
+
+    $whereSQL = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+    $stmt = $pdo->prepare("
+        SELECT a.*, c.course, c.year_graduated
+        FROM alumni a
+        LEFT JOIN ccs_alumni c ON c.student_id = a.student_id
+        $whereSQL
+    ");
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Compute summary
+    $summary['total'] = count($rows);
+    $summary['employed'] = count(array_filter($rows, fn($r) => !empty(trim($r['company_name']))));
+    $summary['unemployed'] = $summary['total'] - $summary['employed'];
+
+    $courseCounts = [];
+    $cityCounts = [];
+    $yearList = [];
+
+    foreach ($rows as $r) {
+        if (!empty($r['course'])) $courseCounts[$r['course']] = ($courseCounts[$r['course']] ?? 0) + 1;
+        if (!empty($r['city_municipality'])) $cityCounts[$r['city_municipality']] = ($cityCounts[$r['city_municipality']] ?? 0) + 1;
+        if (!empty($r['year_graduated'])) $yearList[] = $r['year_graduated'];
+    }
+
+    arsort($courseCounts);
+    arsort($cityCounts);
+    $summary['top_courses'] = array_slice($courseCounts, 0, 3, true);
+    $summary['top_cities']  = array_slice($cityCounts, 0, 3, true);
+    $summary['year_min'] = $yearList ? min($yearList) : '-';
+    $summary['year_max'] = $yearList ? max($yearList) : '-';
 }
 ?>
 <!doctype html>
@@ -44,130 +111,141 @@ function prettyLabel($colKey) {
   <title>Report Generator — Admin</title>
   <link rel="stylesheet" href="../assets/css/styles.css">
   <style>
-    /* Inline red admin theme */
-    body { background:#fff5f5; font-family: Arial, sans-serif; padding:30px; }
-    .card { max-width:1100px; margin:0 auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+    body { background:#fff5f5; font-family:Arial, sans-serif; padding:30px; }
+    .card { max-width:1200px; margin:0 auto; background:#fff; padding:25px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
     h1 { color:#b30000; margin-top:0; }
-    .grid { display:grid; grid-template-columns: 1fr 380px; gap:18px; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
     .filters, .columns { background:#fff; padding:14px; border-radius:6px; border:1px solid #f2dede; }
-    .columns { max-height:420px; overflow:auto; }
-    label { display:block; margin-bottom:6px; font-weight:600; }
-    .field { margin-bottom:12px; }
-    .btn { padding:10px 16px; border-radius:6px; border:none; cursor:pointer; }
+    label { font-weight:600; margin-bottom:5px; display:block; }
+    select, input[type=text], input[type=date] { width:100%; padding:6px; border-radius:4px; border:1px solid #ccc; }
+    .actions { margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+    .btn { padding:10px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; text-decoration:none; display:inline-block; }
     .btn-danger { background:#dc3545; color:#fff; }
-    .btn-outline { background:#fff; border:1px solid #dc3545; color:#b30000; }
-    .small { font-size:0.9em; color:#666; }
-    .col-checkbox { display:flex; gap:8px; align-items:center; padding:6px 0; border-bottom:1px solid #f6e4e4; }
-    .actions { margin-top:12px; display:flex; gap:10px; align-items:center; }
+    .btn-outline { background:#fff; border:2px solid #dc3545; color:#b30000; }
+    .summary-box { margin-top:20px; border:1px solid #f2dede; border-radius:6px; padding:12px; }
+    .summary-box h3 { color:#b30000; margin-top:0; }
+    .summary-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; }
+    .summary-item { background:#fff0f0; border-left:5px solid #dc3545; padding:10px; border-radius:6px; }
+    .summary-item h4 { margin:0; font-size:1em; color:#b30000; }
   </style>
 </head>
 <body>
-  <div class="card">
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
     <h1>Generate Alumni Report</h1>
-    <p class="small">Pick filters and the columns you want. Output is a pipe-separated <code>.txt</code> file (you can change to .csv later).</p>
+    <a href="adminDashboard.php" class="btn btn-outline">← Back to Dashboard</a>
+  </div>
 
+  <form method="POST" id="reportForm">
     <div class="grid">
       <!-- Filters -->
       <div class="filters">
-        <form method="POST" action="../functions/exportReport.php" id="reportForm">
-          <h3 style="color:#b30000;">Filters</h3>
+        <h3 style="color:#b30000;">Filters</h3>
 
-          <div class="field">
-            <label for="filter_course">Course (CCS)</label>
-            <select name="filter_course" id="filter_course">
-              <option value="">— Any —</option>
-              <?php foreach ($courses as $c): ?>
-                <option value="<?= htmlspecialchars($c) ?>"><?= htmlspecialchars($c) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
+        <label>Course</label>
+        <select name="filter_course" id="filter_course">
+          <option value="">— Any —</option>
+          <?php foreach ($courses as $c): ?>
+            <option value="<?= htmlspecialchars($c) ?>" <?= (($_POST['filter_course'] ?? '') === $c) ? 'selected' : '' ?>><?= htmlspecialchars($c) ?></option>
+          <?php endforeach; ?>
+        </select>
 
-          <div class="field">
-            <label for="filter_year">Year Graduated (CCS)</label>
-            <select name="filter_year" id="filter_year">
-              <option value="">— Any —</option>
-              <?php foreach ($years as $y): ?>
-                <option value="<?= htmlspecialchars($y) ?>"><?= htmlspecialchars($y) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
+        <label>Year Graduated</label>
+        <select name="filter_year" id="filter_year">
+          <option value="">— Any —</option>
+          <?php foreach ($years as $y): ?>
+            <option value="<?= htmlspecialchars($y) ?>" <?= (($_POST['filter_year'] ?? '') === $y) ? 'selected' : '' ?>><?= htmlspecialchars($y) ?></option>
+          <?php endforeach; ?>
+        </select>
 
-          <div class="field">
-            <label for="filter_status">Status (Alumni)</label>
-            <select name="filter_status" id="filter_status">
-              <option value="">— Any —</option>
-              <?php foreach ($statuses as $s): ?>
-                <option value="<?= htmlspecialchars($s) ?>"><?= htmlspecialchars(ucfirst($s)) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
+        <label>Status</label>
+        <select name="filter_status" id="filter_status">
+          <option value="">— Any —</option>
+          <?php foreach ($statuses as $s): ?>
+            <option value="<?= htmlspecialchars($s) ?>" <?= (($_POST['filter_status'] ?? '') === $s) ? 'selected' : '' ?>><?= htmlspecialchars(ucfirst($s)) ?></option>
+          <?php endforeach; ?>
+        </select>
 
-          <div class="field">
-            <label for="query_search">Free-text search (name / email / student id)</label>
-            <input type="text" name="query_search" id="query_search" placeholder="e.g. payo, 2023-01619, example@gmail.com" style="width:100%;">
-          </div>
+        <label>Employment</label>
+        <select name="filter_employment" id="filter_employment">
+          <option value="">— Any —</option>
+          <option value="employed" <?= (($_POST['filter_employment'] ?? '') === 'employed') ? 'selected' : '' ?>>Employed</option>
+          <option value="unemployed" <?= (($_POST['filter_employment'] ?? '') === 'unemployed') ? 'selected' : '' ?>>Unemployed</option>
+        </select>
 
-          <div class="actions">
-            <button type="submit" class="btn btn-danger">Generate & Download (.txt)</button>
-            <button type="button" class="btn btn-outline" id="selectAllCols">Select All Columns</button>
-          </div>
+        <label>City / Municipality</label>
+        <select name="filter_city" id="filter_city">
+          <option value="">— Any —</option>
+          <?php foreach ($cities as $city): ?>
+            <option value="<?= htmlspecialchars($city) ?>" <?= (($_POST['filter_city'] ?? '') === $city) ? 'selected' : '' ?>><?= htmlspecialchars($city) ?></option>
+          <?php endforeach; ?>
+        </select>
 
-          <input type="hidden" name="selected_columns[]"> <!-- placeholder so POST always has key -->
-        </form>
+        <label>Date Range</label>
+        <div style="display:flex; gap:10px;">
+          <input type="date" name="date_from" id="date_from" value="<?= htmlspecialchars($_POST['date_from'] ?? '') ?>">
+          <input type="date" name="date_to" id="date_to" value="<?= htmlspecialchars($_POST['date_to'] ?? '') ?>">
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-danger">Preview Summary</button>
+          <a id="exportCSV" class="btn btn-danger">⬇️ Export CSV</a>
+          <a id="previewPDF" target="_blank" class="btn btn-outline">🧾 Preview PDF</a>
+          <a id="downloadPDF" class="btn btn-danger">📄 Download PDF</a>
+        </div>
       </div>
 
-      <!-- Column selection -->
+      <!-- Columns -->
       <div class="columns">
-        <h3 style="color:#b30000;">Select Columns to Include</h3>
-        <div class="small" style="margin-bottom:8px;">You can pick columns from <strong>alumni</strong> and <strong>ccs_alumni</strong>.</div>
-
-        <form id="colsForm" onsubmit="submitCols(); return false;">
+        <h3 style="color:#b30000;">Columns (Select for Export)</h3>
+        <div style="max-height:400px; overflow:auto;">
           <?php foreach ($columns as $key => $dbcol): ?>
-            <div class="col-checkbox">
-              <input type="checkbox" id="<?= htmlspecialchars($key) ?>" name="cols[]" value="<?= htmlspecialchars($key) ?>">
-              <label for="<?= htmlspecialchars($key) ?>"><?= htmlspecialchars($key) ?> — <?= htmlspecialchars(prettyLabel($key)) ?></label>
+            <div style="margin-bottom:6px;">
+              <input type="checkbox" id="<?= htmlspecialchars($key) ?>" name="selected_columns[]" value="<?= htmlspecialchars($key) ?>" checked>
+              <label for="<?= htmlspecialchars($key) ?>"><?= htmlspecialchars($key) ?></label>
             </div>
           <?php endforeach; ?>
-
-          <div style="margin-top:12px;">
-            <button type="button" class="btn btn-danger" onclick="submitCols()">Add Selected Columns to Report</button>
-            <span class="small" style="margin-left:10px;">(Selected columns will be sent with the filters.)</span>
-          </div>
-        </form>
-
+        </div>
       </div>
     </div>
-  </div>
+  </form>
 
+  <?php if (!empty($summary)): ?>
+    <div class="summary-box">
+      <h3>📊 Report Summary Preview</h3>
+      <div class="summary-list">
+        <div class="summary-item"><h4>Total Alumni</h4><?= $summary['total'] ?></div>
+        <div class="summary-item"><h4>Employed</h4><?= $summary['employed'] ?></div>
+        <div class="summary-item"><h4>Unemployed</h4><?= $summary['unemployed'] ?></div>
+        <div class="summary-item"><h4>Top Courses</h4>
+          <?php foreach ($summary['top_courses'] as $c => $count) echo "$c ($count)<br>"; ?>
+        </div>
+        <div class="summary-item"><h4>Top Cities</h4>
+          <?php foreach ($summary['top_cities'] as $c => $count) echo "$c ($count)<br>"; ?>
+        </div>
+        <div class="summary-item"><h4>Year Range</h4><?= $summary['year_min'] ?>–<?= $summary['year_max'] ?></div>
+      </div>
+    </div>
+  <?php endif; ?>
+</div>
+
+<!-- Auto Filter Link Update Script -->
 <script>
-// Select all columns
-document.getElementById('selectAllCols').addEventListener('click', () => {
-  document.querySelectorAll('#colsForm input[type=checkbox]').forEach(cb => cb.checked = true);
-});
+const filters = ['filter_course','filter_year','filter_status','filter_city','filter_employment','date_from','date_to'];
 
-// When admin clicks "Add Selected Columns..." gather and submit via main form
-function submitCols() {
-  const checked = Array.from(document.querySelectorAll('#colsForm input[type=checkbox]:checked')).map(i => i.value);
-  if (checked.length === 0) {
-    if (!confirm('No columns selected. Generate a report with no columns?')) return;
-  }
-
-  // Remove any existing hidden selected_columns inputs
-  document.querySelectorAll('input[name="selected_columns[]"]').forEach(el => el.remove());
-
-  // Add hidden inputs to main form
-  const main = document.getElementById('reportForm');
-  checked.forEach(c => {
-    const i = document.createElement('input');
-    i.type = 'hidden';
-    i.name = 'selected_columns[]';
-    i.value = c;
-    main.appendChild(i);
+function updateLinks() {
+  const params = new URLSearchParams();
+  filters.forEach(f => {
+    const v = document.getElementById(f).value;
+    if (v) params.append(f, v);
   });
-
-  // Submit the main form to exportReport.php
-  main.submit();
+  document.getElementById('previewPDF').href = '../functions/exportPDF.php?preview=1&' + params.toString();
+  document.getElementById('downloadPDF').href = '../functions/exportPDF.php?' + params.toString();
+  document.getElementById('exportCSV').href = '../functions/exportReport.php?' + params.toString();
 }
+
+filters.forEach(f => document.getElementById(f).addEventListener('change', updateLinks));
+window.addEventListener('DOMContentLoaded', updateLinks);
 </script>
 </body>
 </html>

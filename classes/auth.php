@@ -7,13 +7,13 @@ require_once __DIR__ . '/database.php';
 class Auth {
 
     public static function login(string $username, string $password): bool {
-        // Ensure no duplicate session_start warnings
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
         $pdo = Database::getPDO();
 
+        // Fetch admin record
         $sql = "SELECT id, username, password, full_name
                 FROM admin_account
                 WHERE username = :username
@@ -22,10 +22,10 @@ class Auth {
         $stmt->execute([':username' => $username]);
         $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // ✅ Securely verify hashed password
+        // ✅ Verify hashed password properly
         if ($admin && password_verify($password, $admin['password'])) {
             $_SESSION['admin_logged_in'] = true;
-            $_SESSION['admin_id'] = $admin['admin_id'];
+            $_SESSION['admin_id'] = $admin['id'];
             $_SESSION['admin_username'] = $admin['username'];
             $_SESSION['admin_fullname'] = $admin['full_name'];
             return true;
@@ -55,3 +55,4 @@ class Auth {
         }
     }
 }
+?>
