@@ -6,14 +6,12 @@ require_once __DIR__ . '/../classes/database.php';
 Auth::restrict();
 
 $pdo = Database::getPDO();
-
 $student_id = $_GET['id'] ?? '';
-if ($student_id === '') {
-    die("Invalid student ID.");
-}
+if ($student_id === '') die("Invalid student ID.");
 
+// ✅ Archive alumni — set status = 'archived'
 $stmt = $pdo->prepare("
-    UPDATE alumni
+    UPDATE alumni_info
     SET status = 'archived',
         validated_date = NOW()
     WHERE student_id = :student_id

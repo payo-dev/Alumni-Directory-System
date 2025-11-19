@@ -1,7 +1,8 @@
 <?php
 // ==========================================================
-// pages/reportGenerator.php — Advanced Report Generator (Phases 1–3 + Filter-Synced PDF & CSV)
+// pages/reportGenerator.php — Colleges-Alumni Unified Report Generator
 // ==========================================================
+session_start();
 require_once __DIR__ . '/../classes/auth.php';
 require_once __DIR__ . '/../classes/database.php';
 Auth::restrict();
@@ -9,10 +10,21 @@ Auth::restrict();
 $pdo = Database::getPDO();
 
 /* ==========================================================
+   🪪 Fetch Admin Full Name (for header)
+   ========================================================== */
+$adminUsername = $_SESSION['admin_username'] ?? '';
+$adminFullName = 'Administrator';
+if ($adminUsername !== '') {
+    $stmtAdmin = $pdo->prepare("SELECT full_name FROM admin_account WHERE username = :username LIMIT 1");
+    $stmtAdmin->execute([':username' => $adminUsername]);
+    $adminFullName = $stmtAdmin->fetchColumn() ?: 'Administrator';
+}
+
+/* ==========================================================
    1️⃣ — Fetch Column Info for Checkbox Selection
    ========================================================== */
 $columns = [];
-foreach (['alumni', 'ccs_alumni'] as $table) {
+foreach (['colleges_alumni', 'alumni_info', 'alumni_emp_record'] as $table) {
     $stmt = $pdo->query("SHOW COLUMNS FROM {$table}");
     while ($col = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $columns["{$table}.{$col['Field']}"] = "{$table}.{$col['Field']}";
@@ -22,10 +34,10 @@ foreach (['alumni', 'ccs_alumni'] as $table) {
 /* ==========================================================
    2️⃣ — Load Filter Dropdown Data
    ========================================================== */
-$courses  = $pdo->query("SELECT DISTINCT course FROM ccs_alumni WHERE course <> '' ORDER BY course")->fetchAll(PDO::FETCH_COLUMN);
-$years    = $pdo->query("SELECT DISTINCT year_graduated FROM ccs_alumni WHERE year_graduated IS NOT NULL ORDER BY year_graduated DESC")->fetchAll(PDO::FETCH_COLUMN);
-$statuses = $pdo->query("SELECT DISTINCT status FROM alumni ORDER BY status")->fetchAll(PDO::FETCH_COLUMN);
-$cities   = $pdo->query("SELECT DISTINCT city_municipality FROM alumni WHERE city_municipality <> '' ORDER BY city_municipality ASC")->fetchAll(PDO::FETCH_COLUMN);
+$courses  = $pdo->query("SELECT DISTINCT course FROM colleges_alumni WHERE course <> '' ORDER BY course")->fetchAll(PDO::FETCH_COLUMN);
+$years    = $pdo->query("SELECT DISTINCT year_graduated FROM colleges_alumni WHERE year_graduated IS NOT NULL ORDER BY year_graduated DESC")->fetchAll(PDO::FETCH_COLUMN);
+$statuses = $pdo->query("SELECT DISTINCT status FROM alumni_info ORDER BY status")->fetchAll(PDO::FETCH_COLUMN);
+$cities   = $pdo->query("SELECT DISTINCT city_municipality FROM alumni_info WHERE city_municipality <> '' ORDER BY city_municipality ASC")->fetchAll(PDO::FETCH_COLUMN);
 
 /* ==========================================================
    3️⃣ — Handle Preview Query
@@ -44,28 +56,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $params = [];
 
     if ($filterCourse !== '') {
-        $where[] = "c.course = :course";
+        $where[] = "ca.course = :course";
         $params[':course'] = $filterCourse;
     }
     if ($filterYear !== '') {
-        $where[] = "c.year_graduated = :yr";
+        $where[] = "ca.year_graduated = :yr";
         $params[':yr'] = $filterYear;
     }
     if ($filterStatus !== '') {
-        $where[] = "a.status = :status";
+        $where[] = "ai.status = :status";
         $params[':status'] = $filterStatus;
     }
     if ($filterCity !== '') {
-        $where[] = "a.city_municipality = :city";
+        $where[] = "ai.city_municipality = :city";
         $params[':city'] = $filterCity;
     }
     if ($filterEmp === 'employed') {
-        $where[] = "(a.company_name IS NOT NULL AND TRIM(a.company_name) <> '')";
+        $where[] = "(er.company_name IS NOT NULL AND TRIM(er.company_name) <> '')";
     } elseif ($filterEmp === 'unemployed') {
-        $where[] = "(a.company_name IS NULL OR TRIM(a.company_name) = '')";
+        $where[] = "(er.company_name IS NULL OR TRIM(er.company_name) = '')";
     }
     if ($dateFrom !== '' && $dateTo !== '') {
-        $where[] = "DATE(a.created_at) BETWEEN :from AND :to";
+        $where[] = "DATE(ai.created_at) BETWEEN :from AND :to";
         $params[':from'] = $dateFrom;
         $params[':to']   = $dateTo;
     }
@@ -73,9 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $whereSQL = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
     $stmt = $pdo->prepare("
-        SELECT a.*, c.course, c.year_graduated
-        FROM alumni a
-        LEFT JOIN ccs_alumni c ON c.student_id = a.student_id
+        SELECT ca.*, ai.status, ai.city_municipality, er.company_name, er.position
+        FROM colleges_alumni ca
+        LEFT JOIN alumni_info ai ON ai.student_id = ca.student_id
+        LEFT JOIN alumni_emp_record er ON er.student_id = ca.student_id
         $whereSQL
     ");
     $stmt->execute($params);
@@ -111,10 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Report Generator — Admin</title>
   <link rel="stylesheet" href="../assets/css/styles.css">
   <style>
-    body { background:#fff5f5; font-family:Arial, sans-serif; padding:30px; }
-    .card { max-width:1200px; margin:0 auto; background:#fff; padding:25px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
-    h1 { color:#b30000; margin-top:0; }
-    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+    body { background:#fff5f5; font-family:Arial, sans-serif; }
+    .mainContainer { max-width:1200px; margin:30px auto; background:#fff; padding:22px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.08); }
+    header { display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #dc3545; padding-bottom:12px; margin-bottom:25px; }
+    header h1 { color:#b30000; margin:0; }
+    .nav-links a { margin-left:12px; color:#dc3545; text-decoration:none; border:1px solid #dc3545; padding:4px 8px; border-radius:5px; }
     .filters, .columns { background:#fff; padding:14px; border-radius:6px; border:1px solid #f2dede; }
     label { font-weight:600; margin-bottom:5px; display:block; }
     select, input[type=text], input[type=date] { width:100%; padding:6px; border-radius:4px; border:1px solid #ccc; }
@@ -130,18 +144,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </style>
 </head>
 <body>
-<div class="card">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h1>Generate Alumni Report</h1>
-    <a href="adminDashboard.php" class="btn btn-outline">← Back to Dashboard</a>
-  </div>
+<div class="mainContainer">
+  <header>
+    <h1>🧾 Report Generator</h1>
+    <div class="nav-links">
+      Logged in as <strong><?= htmlspecialchars($adminFullName) ?></strong>
+      <a href="adminDashboard.php">🏠 Dashboard</a>
+      <a href="adminAnalytics.php">📊 Analytics</a>
+      <a href="../classes/logout.php">🚪 Logout</a>
+    </div>
+  </header>
 
   <form method="POST" id="reportForm">
-    <div class="grid">
+    <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:18px;">
       <!-- Filters -->
       <div class="filters">
         <h3 style="color:#b30000;">Filters</h3>
-
         <label>Course</label>
         <select name="filter_course" id="filter_course">
           <option value="">— Any —</option>
@@ -229,10 +247,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <?php endif; ?>
 </div>
 
-<!-- Auto Filter Link Update Script -->
 <script>
 const filters = ['filter_course','filter_year','filter_status','filter_city','filter_employment','date_from','date_to'];
-
 function updateLinks() {
   const params = new URLSearchParams();
   filters.forEach(f => {
@@ -243,7 +259,6 @@ function updateLinks() {
   document.getElementById('downloadPDF').href = '../functions/exportPDF.php?' + params.toString();
   document.getElementById('exportCSV').href = '../functions/exportReport.php?' + params.toString();
 }
-
 filters.forEach(f => document.getElementById(f).addEventListener('change', updateLinks));
 window.addEventListener('DOMContentLoaded', updateLinks);
 </script>

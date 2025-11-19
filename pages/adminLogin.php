@@ -2,14 +2,20 @@
 // ==========================================================
 // pages/adminLogin.php — Admin Login Page (Red Dashboard Theme)
 // ==========================================================
+
+// ✅ Ensure session is active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Include authentication handler
 require_once __DIR__ . '/../classes/auth.php';
 
 $loginError = '';
 
+// ----------------------------------------------------------
+// 🔐 Handle Login Submission
+// ----------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
@@ -18,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $loginError = 'Please enter your username and password.';
     } else {
         if (Auth::login($username, $password)) {
+            // Redirect to dashboard
             header("Location: /cssAlumniDirectorySystem/pages/adminDashboard.php");
             exit;
         } else {

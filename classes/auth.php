@@ -1,58 +1,68 @@
 <?php
 // ==========================================================
-// classes/auth.php — Secure Admin Authentication
+// classes/auth.php — Admin Authentication Handler
 // ==========================================================
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/../config.php';
 
 class Auth {
-
+    // -------------------------------------------------------
+    // Login check
+    // -------------------------------------------------------
     public static function login(string $username, string $password): bool {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
         $pdo = Database::getPDO();
 
-        // Fetch admin record
-        $sql = "SELECT id, username, password, full_name
-                FROM admin_account
-                WHERE username = :username
-                LIMIT 1";
-        $stmt = $pdo->prepare($sql);
+        // Try to find user in the database
+        $stmt = $pdo->prepare("SELECT * FROM admin_account WHERE username = :username LIMIT 1");
         $stmt->execute([':username' => $username]);
-        $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+        $admin = $stmt->fetch();
 
-        // ✅ Verify hashed password properly
+        // If found in DB, verify password
         if ($admin && password_verify($password, $admin['password'])) {
-            $_SESSION['admin_logged_in'] = true;
             $_SESSION['admin_id'] = $admin['id'];
             $_SESSION['admin_username'] = $admin['username'];
-            $_SESSION['admin_fullname'] = $admin['full_name'];
+            $_SESSION['admin_fullname'] = $admin['full_name']; // ✅ fixed underscore
+            $_SESSION['is_admin'] = true;
+            return true;
+        }
+
+        // Fallback credentials from config.php
+        if ($username === ADMIN_USERNAME && $password === ADMIN_PASSWORD) {
+            $_SESSION['admin_id'] = 0;
+            $_SESSION['admin_username'] = ADMIN_USERNAME;
+            $_SESSION['admin_fullname'] = ADMIN_FULLNAME;
+            $_SESSION['is_admin'] = true;
             return true;
         }
 
         return false;
     }
 
-    public static function logout(): void {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        session_unset();
-        session_destroy();
-        header("Location: /cssAlumniDirectorySystem/pages/adminLogin.php");
-        exit;
-    }
-
-    public static function isLoggedIn(): bool {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        return !empty($_SESSION['admin_logged_in']);
-    }
-
+    // -------------------------------------------------------
+    // Restrict access to logged-in admins only
+    // -------------------------------------------------------
     public static function restrict(): void {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        if (empty($_SESSION['admin_logged_in'])) {
-            header("Location: /cssAlumniDirectorySystem/pages/adminLogin.php");
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (empty($_SESSION['is_admin'])) {
+            header("Location: adminLogin.php");
             exit;
         }
     }
+
+    // -------------------------------------------------------
+    // Logout
+    // -------------------------------------------------------
+    public static function logout(): void {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $_SESSION = [];
+        session_destroy();
+        header("Location: ../pages/adminLogin.php");
+        exit;
+    }
 }
-?>

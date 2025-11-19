@@ -3,6 +3,8 @@
 // index.php — Main Controller for Alumni Form Flow
 // ==========================================================
 session_start();
+
+// ✅ FIXED PATH — correct relative include
 require_once __DIR__ . '/classes/database.php';
 
 // --- SECTION CONFIG ---
@@ -42,6 +44,7 @@ $total_steps = count($section_keys);
 
 $body_class = ($current_program === 'ccs') ? 'ccs-program-bg' : 'default-program-bg';
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

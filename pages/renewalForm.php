@@ -1,126 +1,193 @@
 <?php
 // ==========================================================
-// pages/renewalForm.php — Pre-filled Renewal Form
+// pages/renewalForm.php — Alumni Renewal Form (Dynamic & Aligned)
 // ==========================================================
 require_once __DIR__ . '/../classes/database.php';
 
-$form = $_SESSION['form_data'] ?? [];
-
-if (empty($form)) {
-    echo "<p style='text-align:center; color:#dc3545;'>No record loaded. Please verify your email first.</p>";
-    echo "<p style='text-align:center;'><a href='renewalVerification.php' class='back-btn'>← Go Back</a></p>";
-    exit;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
+$alumni = $_SESSION['form_data'] ?? [];
+$studentId = $_GET['student_id'] ?? ($alumni['student_id'] ?? null);
+
+if (!$studentId) {
+    echo "<p style='text-align:center;color:#dc3545;'>No student ID found. Please verify your email again.</p>";
+    echo "<p style='text-align:center;'><a href='renewalVerification.php' class='back-btn'>← Back to Verification</a></p>";
+    exit;
+}
 ?>
 
 <div class="renewal-container">
   <h1>CCS Alumni Renewal Form</h1>
-  <p class="instruction">
-    Please review and update your details below. Fields marked as optional only need updates if information has changed.
-  </p>
+  <p class="instruction">Please review and update your latest information below.</p>
 
-  <form action="../functions/renewalSubmit.php" method="POST" class="renewal-form">
+  <form method="POST" action="../functions/renewalSubmit.php" class="renewal-form">
+    <input type="hidden" name="student_id" value="<?= htmlspecialchars($studentId) ?>">
+
+    <!-- PERSONAL SECTION -->
     <fieldset>
       <legend>Personal Information</legend>
 
-      <div class="form-group">
-        <label>Student ID</label>
-        <input type="text" name="student_id" value="<?= htmlspecialchars($form['student_id']) ?>" readonly>
+      <div class="two-col">
+        <div class="form-group">
+          <label for="surname">Last Name</label>
+          <input type="text" id="surname" name="surname"
+                 value="<?= htmlspecialchars($alumni['surname'] ?? '') ?>"
+                 placeholder="Enter updated surname if changed">
+        </div>
+        <div class="form-group">
+          <label for="given_name">First Name</label>
+          <input type="text" id="given_name" name="given_name"
+                 value="<?= htmlspecialchars($alumni['given_name'] ?? '') ?>"
+                 readonly>
+        </div>
       </div>
 
       <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" name="full_name" 
-               value="<?= htmlspecialchars($form['surname'] . ', ' . $form['given_name'] . ' ' . $form['middle_name']) ?>" readonly>
+        <label for="contact_number">Contact Number</label>
+        <input type="tel" id="contact_number" name="contact_number"
+               value="<?= htmlspecialchars($alumni['contact_number'] ?? '') ?>"
+               placeholder="e.g. 09xxxxxxxxx">
       </div>
 
       <div class="form-group">
-        <label>Contact Number (Update if changed)</label>
-        <input type="text" name="contact_number" value="<?= htmlspecialchars($form['contact_number'] ?? '') ?>">
-      </div>
-
-      <div class="form-group">
-        <label>Email (Read Only)</label>
-        <input type="email" name="email" value="<?= htmlspecialchars($form['email'] ?? '') ?>" readonly>
-      </div>
-
-      <div class="form-group">
-        <label>Address (Update if changed)</label>
-        <input type="text" name="region" placeholder="Region" value="<?= htmlspecialchars($form['region'] ?? '') ?>">
-        <input type="text" name="province" placeholder="Province" value="<?= htmlspecialchars($form['province'] ?? '') ?>">
-        <input type="text" name="city_municipality" placeholder="City / Municipality" value="<?= htmlspecialchars($form['city_municipality'] ?? '') ?>">
-        <input type="text" name="barangay" placeholder="Barangay" value="<?= htmlspecialchars($form['barangay'] ?? '') ?>">
-      </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Employment (Optional)</legend>
-
-      <div class="form-group">
-        <label>Company Name</label>
-        <input type="text" name="company_name" value="<?= htmlspecialchars($form['company_name'] ?? '') ?>">
-      </div>
-
-      <div class="form-group">
-        <label>Position</label>
-        <input type="text" name="position" value="<?= htmlspecialchars($form['position'] ?? '') ?>">
-      </div>
-
-      <div class="form-group">
-        <label>Company Address</label>
-        <input type="text" name="company_address" value="<?= htmlspecialchars($form['company_address'] ?? '') ?>">
-      </div>
-
-      <div class="form-group">
-        <label>Company Contact</label>
-        <input type="text" name="company_contact" value="<?= htmlspecialchars($form['company_contact'] ?? '') ?>">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email"
+               value="<?= htmlspecialchars($alumni['email'] ?? '') ?>"
+               readonly>
       </div>
     </fieldset>
 
+    <!-- ADDRESS SECTION -->
     <fieldset>
-  <legend>Emergency Contact (Optional)</legend>
+      <legend>Address</legend>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Region</label>
+          <input type="text" name="region"
+                 value="<?= htmlspecialchars($alumni['region'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+          <label>Province</label>
+          <input type="text" name="province"
+                 value="<?= htmlspecialchars($alumni['province'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+          <label>City / Municipality</label>
+          <input type="text" name="city_municipality"
+                 value="<?= htmlspecialchars($alumni['city_municipality'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+          <label>Barangay</label>
+          <input type="text" name="barangay"
+                 value="<?= htmlspecialchars($alumni['barangay'] ?? '') ?>">
+        </div>
+      </div>
+    </fieldset>
 
-  <div class="form-group">
-    <label>Contact Name</label>
-    <input type="text" name="emergency_name" value="<?= htmlspecialchars($form['emergency_name'] ?? '') ?>">
-  </div>
+    <!-- EMPLOYMENT SECTION -->
+    <fieldset>
+      <legend>Employment Information</legend>
+      <div class="two-col">
+        <div class="form-group">
+          <label for="company_name">Company Name</label>
+          <input type="text" id="company_name" name="company_name"
+                 value="<?= htmlspecialchars($alumni['company_name'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+          <label for="position">Position / Job Title</label>
+          <input type="text" id="position" name="position"
+                 value="<?= htmlspecialchars($alumni['position'] ?? '') ?>">
+        </div>
+      </div>
 
-  <div class="form-group">
-    <label>Address</label>
-    <input type="text" name="emergency_address" value="<?= htmlspecialchars($form['emergency_address'] ?? '') ?>">
-  </div>
+      <div class="two-col">
+        <div class="form-group">
+          <label for="company_address">Company Address</label>
+          <input type="text" id="company_address" name="company_address"
+                 value="<?= htmlspecialchars($alumni['company_address'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+          <label for="company_contact">Company Contact</label>
+          <input type="text" id="company_contact" name="company_contact"
+                 value="<?= htmlspecialchars($alumni['company_contact'] ?? '') ?>">
+        </div>
+      </div>
+    </fieldset>
 
-  <div class="form-group">
-    <label>Contact Number</label>
-    <input type="text" name="emergency_contact" value="<?= htmlspecialchars($form['emergency_contact'] ?? '') ?>">
-  </div>
-</fieldset>
+    <!-- EDUCATION ADDITION SECTION -->
+    <fieldset>
+      <legend>Additional Educational Background</legend>
+      <p class="sub-instruction">If you have earned a new tertiary degree, you may add it below.</p>
 
+      <div class="two-col">
+        <div class="form-group">
+          <label for="new_tertiary_school">New College / University</label>
+          <input type="text" id="new_tertiary_school" name="new_tertiary_school"
+                 placeholder="e.g. Western Mindanao State University">
+        </div>
+        <div class="form-group">
+          <label for="new_tertiary_yr">Year Graduated</label>
+          <input type="number" id="new_tertiary_yr" name="new_tertiary_yr"
+                 min="1900" max="<?= date('Y') + 1 ?>">
+        </div>
+      </div>
+    </fieldset>
 
-    <button type="submit" class="submit-btn">✅ Submit Renewal</button>
-    <a href="../pages/viewCurrentRecord.php?student_id=<?= urlencode($form['student_id']) ?>" class="view-btn">👁️ View Current Record</a>
+    <!-- EMERGENCY CONTACT -->
+    <fieldset>
+      <legend>Emergency Contact</legend>
+      <div class="two-col">
+        <div class="form-group">
+          <label for="emergency_name">Full Name</label>
+          <input type="text" id="emergency_name" name="emergency_name"
+                 value="<?= htmlspecialchars($alumni['emergency_name'] ?? '') ?>">
+        </div>
+        <div class="form-group">
+          <label for="emergency_contact">Contact Number</label>
+          <input type="text" id="emergency_contact" name="emergency_contact"
+                 value="<?= htmlspecialchars($alumni['emergency_contact'] ?? '') ?>">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="emergency_address">Address</label>
+        <input type="text" id="emergency_address" name="emergency_address"
+               value="<?= htmlspecialchars($alumni['emergency_address'] ?? '') ?>">
+      </div>
+    </fieldset>
+
+    <!-- SUBMIT BUTTON -->
+    <div class="btn-group">
+      <button type="submit" class="submit-btn">Submit Renewal</button>
+      <a href="renewalVerification.php" class="back-btn">← Back to Verification</a>
+    </div>
   </form>
 </div>
 
 <style>
 .renewal-container {
-  max-width: 800px;
+  max-width: 850px;
   margin: 40px auto;
   background: #f8fff8;
-  padding: 30px;
+  padding: 35px;
   border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
   font-family: Arial, sans-serif;
 }
 h1 {
   color: #198754;
   text-align: center;
+  margin-bottom: 10px;
 }
 .instruction {
   text-align: center;
   color: #555;
   margin-bottom: 25px;
+}
+.sub-instruction {
+  color: #777;
+  margin-bottom: 10px;
 }
 fieldset {
   border: 1px solid #198754;
@@ -131,41 +198,63 @@ fieldset {
 legend {
   color: #198754;
   font-weight: bold;
+  padding: 0 10px;
 }
 .form-group {
   margin-bottom: 15px;
 }
-.form-group label {
-  color: #198754;
-  font-weight: bold;
+label {
   display: block;
+  font-weight: bold;
+  color: #198754;
   margin-bottom: 5px;
 }
-.form-group input {
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"] {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
+.two-col {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.two-col .form-group {
+  flex: 1;
+  min-width: 250px;
+}
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+.btn-group {
+  text-align: center;
+  margin-top: 25px;
+}
 .submit-btn {
   background: #198754;
   color: white;
   border: none;
-  padding: 12px 25px;
+  padding: 10px 20px;
   border-radius: 6px;
-  font-size: 1em;
   cursor: pointer;
+  font-size: 1em;
 }
 .submit-btn:hover {
   background: #157347;
 }
-.view-btn {
+.back-btn {
   display: inline-block;
-  margin-left: 10px;
+  margin-left: 15px;
   color: #198754;
   text-decoration: none;
 }
-.view-btn:hover {
+.back-btn:hover {
   text-decoration: underline;
 }
 </style>

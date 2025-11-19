@@ -1,27 +1,34 @@
 <?php
 // ==========================================================
-// functions/clearSession.php — Clears Form Session and Redirects
+// functions/clearSession.php — Clears Form Session Safely
 // ==========================================================
 
-// Start session if not already started
+// ✅ Ensure session is active
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Clear only form data session (to avoid affecting admin sessions)
-if (isset($_SESSION['form_data'])) {
-    unset($_SESSION['form_data']);
+// ----------------------------------------------------------
+// 🧹 Remove form-related session variables only
+// ----------------------------------------------------------
+$formKeys = ['form_data', 'current_section', 'application_type', 'program'];
+
+foreach ($formKeys as $key) {
+    if (isset($_SESSION[$key])) {
+        unset($_SESSION[$key]);
+    }
 }
 
-// Optional: clear other temporary form-related data if you have any
-if (isset($_SESSION['current_section'])) {
-    unset($_SESSION['current_section']);
+// ----------------------------------------------------------
+// 🧭 Optional: also clear POST cache (for browser back button)
+// ----------------------------------------------------------
+if (isset($_SERVER['HTTP_REFERER']) && str_contains($_SERVER['HTTP_REFERER'], 'index.php')) {
+    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+    header("Pragma: no-cache");
 }
 
-// Fully destroy session only if you want to reset everything
-// session_destroy();
-
-// Redirect back to landing page
+// ----------------------------------------------------------
+// 🚀 Redirect user back to Landing Page
+// ----------------------------------------------------------
 header("Location: ../index.php");
 exit;
-?>

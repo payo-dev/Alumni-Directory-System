@@ -1,8 +1,15 @@
 <?php
 // ==========================================================
-// pages/renewalVerification.php — Verify Alumni for Renewal
+// pages/renewalVerification.php — Verify Alumni for Renewal (Fixed + Combined)
 // ==========================================================
+
+// ✅ Correct include path from /pages/ to /classes/
 require_once __DIR__ . '/../classes/database.php';
+
+// ✅ Prevent "session already active" notice
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $message = '';
 
@@ -10,14 +17,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $pdo = Database::getPDO();
 
-    $stmt = $pdo->prepare("SELECT * FROM alumni WHERE email = :email LIMIT 1");
+    // ✅ Corrected query — joins alumni_info and uses ai.email
+    $stmt = $pdo->prepare("
+        SELECT ca.*, ai.email, ai.region, ai.province, ai.city_municipality, ai.barangay,
+               ai.birthday, ai.blood_type, ai.picture_path
+        FROM colleges_alumni ca
+        LEFT JOIN alumni_info ai ON ca.student_id = ai.student_id
+        WHERE ai.email = :email
+        LIMIT 1
+    ");
     $stmt->execute([':email' => $email]);
     $alumni = $stmt->fetch();
 
     if ($alumni) {
-        $_SESSION['form_data'] = $alumni;
-        header("Location: renewalForm.php?student_id=" . urlencode($alumni['student_id']));
-        exit;
+        // ✅ Prevent duplicate renewal attempts
+        if (!empty($alumni['renewal_status']) && $alumni['renewal_status'] === 'pending') {
+            $message = "Your renewal request is currently pending approval. Please wait for confirmation before submitting again.";
+        } else {
+            $_SESSION['form_data'] = $alumni;
+            header("Location: renewalForm.php?student_id=" . urlencode($alumni['student_id']));
+            exit;
+        }
     } else {
         $message = "No record found for this email. Please make sure you are using the email you registered with.";
     }
